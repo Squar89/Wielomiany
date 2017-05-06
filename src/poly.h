@@ -10,8 +10,8 @@
 #ifndef __POLY_H__
 #define __POLY_H__
 
-#include <stdbool.h>
 #include <stddef.h>
+#include <stdlib.h>
 #include "list.h"
 
 /** Typ współczynników wielomianu */
@@ -50,8 +50,12 @@ typedef struct Mono
  * @return wielomian
  */
 static inline Poly PolyFromCoeff(poly_coeff_t c) {
-    /* TODO */
-    //poly z pusta lista i wartoscia rowna c
+    /* TODO upewnij się ze nie musisz tutaj nigdzie alokowac pamieci*/
+    Poly poly;
+    poly.mono_list = NULL;
+    poly.constant_value = c;
+    poly.is_coeff = true;
+    return poly;
 }
 
 /**
@@ -59,8 +63,7 @@ static inline Poly PolyFromCoeff(poly_coeff_t c) {
  * @return wielomian
  */
 static inline Poly PolyZero() {
-    /* TODO */
-    //return PolyFromCoeff(0); 
+    return PolyFromCoeff(0); 
 }
 
 /**
@@ -80,8 +83,7 @@ static inline Mono MonoFromPoly(Poly *p, poly_exp_t e) {
  * @return Czy wielomian jest współczynnikiem?
  */
 static inline bool PolyIsCoeff(const Poly *p) {
-    /* TODO */
-    //w poly trzymamy wskaznik do mono lub null jesli jest tym zewnetrznym
+    return p->is_coeff;
 }
 
 /**
@@ -90,10 +92,9 @@ static inline bool PolyIsCoeff(const Poly *p) {
  * @return Czy wielomian jest równy zero?
  */
 static inline bool PolyIsZero(const Poly *p) {
-    /* TODO */
-    //wchodzi rekurencyjnie i sprawdza caly, ale dla przyspieszenia zawsze gdy
-    //wielomian jest rowny zero to go usuwam(uwazaj zeby wszedzie to
-    //kontrolowac)
+    return (p->mono_list == NULL && p->constant_value == 0);
+    /* TODO jeśli coś z tym jest nie tak, to znaczy ze nie pozbywam się
+     * wielomianów zerowych */
 }
 
 /**
@@ -108,7 +109,10 @@ void PolyDestroy(Poly *p);
  * @param[in] m : jednomian
  */
 static inline void MonoDestroy(Mono *m) {
-    /* TODO */
+    /* TODO upewnij się że rzeczywiscie niszczysz */
+    PolyDestroy(&(m->p));
+    free(m);
+    return;
 }
 
 /**
@@ -124,7 +128,7 @@ Poly PolyClone(const Poly *p);
  * @return skopiowany jednomian
  */
 static inline Mono MonoClone(const Mono *m) {
-    /* TODO */
+    return MonoFromPoly(&(m->p), m->exp);
 }
 
 /**
