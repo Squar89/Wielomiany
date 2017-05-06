@@ -1,8 +1,8 @@
-#include<stdlib.h>
-#include<stdio.h>
-#include"list.h"
+#include <stdlib.h>
+#include <stdio.h>
+#include "list.h"
 
-bool checkIfNullPointer(List *list) {
+bool CheckIfNullPointer(List *list) {
     if (list->previous == NULL || list->next == NULL) {
         printf("List element contains NULL pointer\n");
         return true;
@@ -10,36 +10,36 @@ bool checkIfNullPointer(List *list) {
     return false;
 }
 
-int getLabel(List *list) {
-    return list->label;
+void* GetElement(List *list) {
+    return list->element;
 }
 
-List* getPrevious(List *list) {
+List* GetPrevious(List *list) {
     return list->previous;
 }
 
-List* getNext(List *list) {
+List* GetNext(List *list) {
     return list->next;
 }
 
-List* createListElement(int label) {
+List* CreateListElement(void* element) {
     List *list;
     list = (List*) malloc(sizeof(List));
     
     list->previous = list;
     list->next = list;
-    list->label = label;
+    list->element = element;
     
     return list;
 }
 
-void setConnection(List *firstList, List *secondList) {
+void SetConnection(List *firstList, List *secondList) {
     firstList->next = secondList;
     secondList->previous = firstList;
     return;
 }
 
-void deleteListElement(List *list) {
+void DeleteListElement(List *list) {
     free(list);
     return;
 }

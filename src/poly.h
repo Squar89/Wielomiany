@@ -1,9 +1,10 @@
 /** @file
    Interfejs klasy wielomianów
 
-   @author Jakub Pawlewicz <pan@mimuw.edu.pl>, TODO
+   @author Jakub Pawlewicz <pan@mimuw.edu.pl>,
+           Jakub Wróblewski <jw386401@students.mimuw.edu.pl>
    @copyright Uniwersytet Warszawski
-   @date 2017-04-09, TODO
+   @date 2017-04-09, 2017-05-06 TODO
 */
 
 #ifndef __POLY_H__
@@ -11,6 +12,7 @@
 
 #include <stdbool.h>
 #include <stddef.h>
+#include "list.h"
 
 /** Typ współczynników wielomianu */
 typedef long poly_coeff_t;
@@ -24,10 +26,10 @@ typedef int poly_exp_t;
  */
 typedef struct Poly
 {
-    /* TODO */
-    //lista mono
-    //wartosc jesli pusta lista
-    
+    List *mono_list; ///< lista wskaźników na jednomiany wielomianu
+    poly_coeff_t constant_value; ///< wartość dla stałego wielomianu
+    bool is_coeff; ///< bool stwierdzający czy wielomian jest współczynnikiem
+    /* TODO upewnij się czy nie musisz trzymać wskaźnika na mono wyżej */
 } Poly;
 
 /**

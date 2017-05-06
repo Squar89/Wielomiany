@@ -1,27 +1,29 @@
 #ifndef LIST_H
 #define LIST_H
 
+#include <stdbool.h>
+
 /* this struct represents list element with pointers
  * to previous and next element */
+
 typedef struct List {
     struct List *previous;
     struct List *next;
-    int label;
+    void *element;
 } List;
-typedef enum { false, true } bool;
 
-extern bool checkIfNullPointer(List *list);
+extern bool CheckIfNullPointer(List *list);
 
-extern int getLabel(List *list);
+extern void* GetElement(List *list);
 
-extern List* getPrevious(List *list);
+extern List* GetPrevious(List *list);
 
-extern List* getNext(List *list);
+extern List* GetNext(List *list);
 
-extern List* createListElement(int label);
+extern List* CreateListElement(void* element);
 
-extern void setConnection(List *firstList, List *secondList);
+extern void SetConnection(List *firstList, List *secondList);
 
-extern void deleteListElement(List *list);
+extern void DeleteListElement(List *list);
 
 #endif /* LIST_H */
