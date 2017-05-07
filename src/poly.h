@@ -28,7 +28,6 @@ typedef struct Poly
 {
     List *mono_list; ///< lista wskaźników na jednomiany wielomianu
     poly_coeff_t constant_value; ///< wartość dla stałego wielomianu
-    bool is_coeff; ///< bool stwierdzający czy wielomian jest współczynnikiem
     /* TODO upewnij się czy nie musisz trzymać wskaźnika na mono wyżej */
 } Poly;
 
@@ -50,11 +49,10 @@ typedef struct Mono
  * @return wielomian
  */
 static inline Poly PolyFromCoeff(poly_coeff_t c) {
-    /* TODO upewnij się ze nie musisz tutaj nigdzie alokowac pamieci*/
+    /* TODO upewnij się ze nie musisz tutaj nigdzie alokowac pamieci */
     Poly poly;
     poly.mono_list = NULL;
     poly.constant_value = c;
-    poly.is_coeff = true;
     return poly;
 }
 
@@ -83,7 +81,7 @@ static inline Mono MonoFromPoly(Poly *p, poly_exp_t e) {
  * @return Czy wielomian jest współczynnikiem?
  */
 static inline bool PolyIsCoeff(const Poly *p) {
-    return p->is_coeff;
+    return p->mono_list == NULL;
 }
 
 /**
@@ -112,6 +110,7 @@ static inline void MonoDestroy(Mono *m) {
     /* TODO upewnij się że rzeczywiscie niszczysz */
     PolyDestroy(&(m->p));
     free(m);
+    
     return;
 }
 

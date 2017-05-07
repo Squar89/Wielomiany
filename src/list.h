@@ -26,4 +26,8 @@ extern void SetConnection(List *firstList, List *secondList);
 
 extern void DeleteListElement(List *list);
 
+extern void DeleteList(List *list);
+
+extern List* CloneList(List *list_in);
+
 #endif /* LIST_H */
