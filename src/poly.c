@@ -100,18 +100,66 @@ Poly PolySub(const Poly *p, const Poly *q) {
     /* TODO */ return poly;
 }
 
+poly_exp_t max(poly_exp_t x, poly_exp_t y) {
+    if (x > y) {
+        return x;
+    }
+    return y;
+}
+
 poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx) {
     if (PolyIsZero(p)) {
         return -1;
     }
     
-    //wchodzi na odpowiedni poziom i sumuje exp
-    /* TODO */ return var_idx;
+    List *list;
+    Mono *mono;
+    poly_exp_t result;
+    
+    result = 0;
+    list = p->mono_list;
+    list = GetNext(list);
+    
+    while(GetElement(list) != NULL) {
+        mono = GetElement(list);
+        
+        if(var_idx > 0) {
+            result = max(result, PolyDegBy(&(mono->p), var_idx - 1));
+        }
+        else if(var_idx == 0 && !PolyIsZero(&(mono->p))) {
+            result = max(result, mono->exp);
+        }
+        
+        list = GetNext(list);
+    }
+    
+    return result;
 }
 
 poly_exp_t PolyDeg(const Poly *p) {
-    //max + własny i  na kazdym poziomie
-    /* TODO */ return 0;
+    if (PolyIsZero(p)) {
+        return -1;
+    }
+    
+    List *list;
+    Mono *mono;
+    poly_exp_t result;
+    
+    result = 0;
+    list = p->mono_list;
+    list = GetNext(list);
+    
+    while (GetElement(list) != NULL) {
+        mono = GetElement(list);
+        
+        if (!PolyIsZero(&(mono->p))) {
+            result = max(result, PolyDeg(&(mono->p)) + mono->exp);
+        }
+        
+        list = GetNext(list);
+    }
+    
+    return result;
 }
 
 bool PolyIsEq(const Poly *p, const Poly *q) {
