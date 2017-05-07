@@ -41,47 +41,59 @@ void SetConnection(List *firstList, List *secondList) {
     return;
 }
 
+void Add(List *list, void *element) {
+    List* new_list_element;
+    
+    new_list_element = CreateListElement(element);
+    
+    SetConnection(GetPrevious(list), new_list_element);
+    SetConnection(new_list_element, list);
+    
+    return;
+}
+
+List* SetupList() {
+    List *guardian;
+    
+    guardian = CreateListElement(NULL);
+    
+    return guardian;
+}
+
 void DeleteListElement(List *list) {
+    free(GetElement(list));
     free(list);
     
     return;
 }
 
 void DeleteList(List *list) {
-    if (GetNext(list) != list) {
+    if (GetElement(GetNext(list)) != NULL) {
         DeleteList(GetNext(list));
-    }
-    if (GetPrevious(list) != list) {
-        DeleteList(GetPrevious(list));
     }
     DeleteListElement(list);
     
     return;
 }
 
-List* CloneList(List *list_in) {
-    List *list, *next;
-    
+List* CloneList(void* (*Clone)(void*), List *list_in) {
     if(list_in == NULL) return NULL;
+
+    List *list;
+    void *copy;
     
-    while (GetNext(list_in) != list_in) {
+    list = SetupList();
+    
+    while (GetElement(GetNext(list_in)) != NULL) {
+        copy = Clone(GetElement(GetNext(list_in)));
+        Add(list, copy);
+        
         list_in = GetNext(list_in);
     }
     
-    while (GetPrevious(list_in) != list_in) {
-        list = CreateListElement(GetElement(list_in));
-        
-        if (GetNext(list_in) == list_in) {
-            next = list;
-        }
-        SetConnection(list, next);
-        next = list;
-        
-        list_in = GetPrevious(list_in);
-    }
-    
-    list = CreateListElement(GetElement(list_in));
-    SetConnection(list, next);
-    
     return list;
+}
+
+bool IsEmpty(List *list) {
+    return GetElement(GetNext(list)) == NULL;
 }

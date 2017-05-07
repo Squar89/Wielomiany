@@ -24,10 +24,14 @@ extern List* CreateListElement(void* element);
 
 extern void SetConnection(List *firstList, List *secondList);
 
+extern List* SetupList();
+
 extern void DeleteListElement(List *list);
 
 extern void DeleteList(List *list);
 
-extern List* CloneList(List *list_in);
+extern List* CloneList(void* (*Clone)(void*), List *list_in);
+
+extern bool IsEmpty(List *list);
 
 #endif /* LIST_H */
