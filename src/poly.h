@@ -28,7 +28,6 @@ typedef struct Poly
 {
     List *mono_list; ///< lista wskaźników na jednomiany wielomianu
     poly_coeff_t constant_value; ///< wartość dla stałego wielomianu
-    /* TODO upewnij się czy nie musisz trzymać wskaźnika na mono wyżej */
 } Poly;
 
 /**
@@ -49,11 +48,7 @@ typedef struct Mono
  * @return wielomian
  */
 static inline Poly PolyFromCoeff(poly_coeff_t c) {
-    /* TODO upewnij się ze nie musisz tutaj nigdzie alokowac pamieci */
-    Poly poly;
-    poly.mono_list = NULL;
-    poly.constant_value = c;
-    return poly;
+    return (Poly) {.mono_list = SetupList(), .constant_value = c};
 }
 
 /**
@@ -127,7 +122,7 @@ Poly PolyClone(const Poly *p);
  * @return skopiowany jednomian
  */
 static inline Mono MonoClone(const Mono *m) {
-    return MonoFromPoly(&(m->p), m->exp);
+    return (Mono) {.p = PolyClone(&(m->p)), .exp = m->exp};
 }
 
 /**

@@ -41,7 +41,7 @@ void SetConnection(List *firstList, List *secondList) {
     return;
 }
 
-void Add(List *list, void *element) {
+void AddElement(List *list, void *element) {
     List* new_list_element;
     
     new_list_element = CreateListElement(element);
@@ -86,7 +86,7 @@ List* CloneList(void* (*Clone)(void*), List *list_in) {
     
     while (GetElement(GetNext(list_in)) != NULL) {
         copy = Clone(GetElement(GetNext(list_in)));
-        Add(list, copy);
+        AddElement(list, copy);
         
         list_in = GetNext(list_in);
     }

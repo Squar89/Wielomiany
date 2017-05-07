@@ -24,6 +24,8 @@ extern List* CreateListElement(void* element);
 
 extern void SetConnection(List *firstList, List *secondList);
 
+extern void AddElement(List *list, void *element);
+
 extern List* SetupList();
 
 extern void DeleteListElement(List *list);
