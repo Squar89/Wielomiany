@@ -163,8 +163,32 @@ poly_exp_t PolyDeg(const Poly *p) {
 }
 
 bool PolyIsEq(const Poly *p, const Poly *q) {
+    List *p_list, *q_list;
+    Mono *p_mono, *q_mono;
     
-    /* TODO */ return false;
+    p_list = p->mono_list;
+    q_list = q->mono_list;
+    p_list = GetNext(p_list);
+    q_list = GetNext(q_list);
+    
+    while (GetElement(p_list) != NULL && GetElement(q_list) != NULL) {
+        p_mono = GetElement(p_list);
+        q_mono = GetElement(q_list);
+        
+        if (p_mono->exp != q_mono->exp ||
+            !PolyIsEq(&(p_mono->p), &(q_mono->p))) {
+            return false;
+        }
+        
+        p_list = GetNext(p_list);
+        q_list = GetNext(q_list);
+    }
+    
+    if (GetElement(p_list) != NULL || GetElement(q_list) != NULL) {
+        return false;
+    }
+    
+    return true;
 }
 
 Poly PolyAt(const Poly *p, poly_coeff_t x) {
