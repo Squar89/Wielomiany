@@ -69,6 +69,8 @@ void AddMono(List *list, Mono *mono) {
     return;
 }
 
+//upewnij sie ze mozesz przepisywac wielomiany - wolna wersja
+//lub zmien to
 Poly PolyAdd(const Poly *p, const Poly *q) {
     Poly result, poly, p_clone;
     Mono temp, *p_mono, *q_mono;
@@ -96,6 +98,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
     else {
         result = PolyZero();
         result_list = result.mono_list;
+        
         while (GetElement(p_list) != NULL && GetElement(q_list) != NULL) {
             p_mono = GetElement(p_list);
             q_mono = GetElement(q_list);
@@ -190,21 +193,104 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
 }
 
 Poly PolyMul(const Poly *p, const Poly *q) {
-    Poly poly;
+    Poly result, temp, new_poly;
+    Mono *current_mono, *mono_to_mul, *new_mono, temp_mono;
+    List *p_list, *q_list;
     
-    /* TODO */ return poly;
+    if (PolyIsCoeff(p) && PolyIsCoeff(q)) {
+        result = PolyFromCoeff(p->constant_value * q->constant_value);
+    }
+    
+    else if (PolyIsCoeff(p)) {
+        result = PolyZero();
+        
+        q_list = q->mono_list;
+        
+        while (GetElement(q_list) != NULL) {
+            mono_to_mul = GetElement(q_list);
+            
+            new_mono = (Mono*) malloc(sizeof(Mono));
+            
+            temp = PolyMul(p, &(mono_to_mul->p));
+            temp_mono = MonoFromPoly(&temp, mono_to_mul->exp);
+            new_mono = &temp_mono;
+            
+            new_poly = PolyZero();
+            AddMono(new_poly.mono_list, new_mono);
+            
+            result = PolyAdd(&result, &new_poly);
+            
+            PolyDestroy(&new_poly);
+            
+            q_list = GetNext(q_list);
+        }
+    }
+    
+    else if (PolyIsCoeff(q)) {
+        result = PolyMul(q, p);
+    }
+    
+    else {
+        result = PolyZero();
+        
+        p_list = p->mono_list;
+        q_list = q->mono_list;
+        
+        p_list = GetNext(p_list);
+        q_list = GetNext(q_list);
+        
+        while (GetElement(p_list) != NULL) {
+            current_mono = GetElement(p_list);
+            
+            while (GetElement(q_list) != NULL) {
+                mono_to_mul = GetElement(q_list);
+                
+                new_mono = (Mono*) malloc(sizeof(Mono));
+                
+                temp = PolyMul(&(current_mono->p), &(mono_to_mul->p));
+                temp_mono =
+                    MonoFromPoly(&temp, current_mono->exp + mono_to_mul->exp);
+                new_mono = &temp_mono;
+                
+                new_poly = PolyZero();
+                AddMono(new_poly.mono_list, new_mono);
+                
+                result = PolyAdd(&result, &new_poly);
+                
+                PolyDestroy(&new_poly);
+                
+                q_list = GetNext(q_list);
+            }
+            
+            p_list = GetNext(q_list);
+        }
+    }
+    
+    CheckPoly(&result);
+    
+    return result;
 }
 
 Poly PolyNeg(const Poly *p) {
-    Poly poly;
+    Poly poly, result;
     
-    /* TODO */ return poly;
+    poly = PolyFromCoeff(-1);
+    
+    result = PolyMul(&poly, p);
+    
+    PolyDestroy(&poly);
+    
+    return result;
 }
 
 Poly PolySub(const Poly *p, const Poly *q) {
-    Poly poly;
+    Poly result, neg_q;
     
-    /* TODO */ return poly;
+    neg_q = PolyNeg(q);
+    
+    result = PolyAdd(p, &neg_q);
+    
+    return result;
 }
 
 poly_exp_t max(poly_exp_t x, poly_exp_t y) {
