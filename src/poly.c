@@ -384,10 +384,52 @@ bool PolyIsEq(const Poly *p, const Poly *q) {
     return true;
 }
 
-Poly PolyAt(const Poly *p, poly_coeff_t x) {
-    Poly poly;
+poly_coeff_t FastExp(poly_coeff_t value, poly_exp_t exp) {
+    poly_coeff_t x;
     
-    /* TODO */ return poly;
+    if (exp == 0) {
+        return 1;
+    }
+    
+    else if (exp % 2 == 1) {
+        x = FastExp(value, (exp - 1) / 2);
+        
+        return value * x * x;
+    }
+    
+    else /* (exp % 2 == 0) */ {
+        x = FastExp(value, exp / 2);
+        
+        return x * x;
+    }
+}
+
+Poly PolyAt(const Poly *p, poly_coeff_t x) {
+    Poly result, new_poly, temp;
+    Mono *current_mono;
+    List *p_list;
+    poly_coeff_t value;
+    
+    result = PolyZero();
+    
+    p_list = GetNext(p_list);
+    
+    while (GetElement(p_list) != NULL) {
+        current_mono = GetElement(p_list);
+        
+        value = FastExp(x, current_mono->exp);
+        
+        new_poly = PolyFromCoeff(value);
+        
+        temp = PolyMul(&new_poly, &(current_mono->p));
+        result = PolyAdd(&result, &temp);
+        
+        p_list = GetNext(p_list);
+    }
+    
+    CheckPoly(&result);
+    
+    return result;
 }
 
 int main() {
