@@ -30,10 +30,32 @@ Poly PolyClone(const Poly *p) {
     return poly;
 }
 
+void CheckPoly(Poly *poly) {
+    Poly temp;
+    poly_coeff_t constant_value;
+    List *list;
+    Mono *last_mono;
+    
+    list = poly->mono_list;
+    last_mono =/* (mono*) */GetElement(GetPrevious(list));
+    
+    if (last_mono != NULL) {
+        if (last_mono->exp == 0 && PolyIsCoeff(&(last_mono->p))) {
+            constant_value = last_mono->p.constant_value;
+            
+            PolyDestroy(poly);
+            
+            temp = PolyFromCoeff(constant_value);
+            
+            poly = &temp;
+        }
+    }
+}
+
 void AddMono(List *list, Mono *mono) {
     Mono temp, *new_mono;
     
-    if(PolyIsZero(&(mono->p))) {
+    if (PolyIsZero(&(mono->p))) {
         return;
     }
     
@@ -116,6 +138,8 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
             q_list = GetNext(q_list);
         }
     
+    CheckPoly(&result);
+    
     return result;
 }
 
@@ -128,10 +152,10 @@ int Cmp(const void *x, const void *y) {
     if (first_mono > second_mono) {
         return 1;
     }
-    if (first_mono == second_mono) {
+    else if (first_mono == second_mono) {
         return 0;
     }
-    if (first_mono < second_mono) {
+    else /* (first_mono < second_mono) */ {
         return -1;
     }
 }
