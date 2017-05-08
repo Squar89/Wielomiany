@@ -30,10 +30,93 @@ Poly PolyClone(const Poly *p) {
     return poly;
 }
 
-Poly PolyAdd(const Poly *p, const Poly *q) {
-    Poly poly;
+void AddMono(List *list, Mono *mono) {
+    Mono temp, *new_mono;
     
-    /* TODO */ return poly;
+    if(PolyIsZero(&(mono->p))) {
+        return;
+    }
+    
+    new_mono = (Mono*) malloc(sizeof(Mono));
+    
+    temp = MonoClone(mono);
+    new_mono = &temp;
+    
+    AddElement(list, (void*) new_mono);
+    
+    return;
+}
+
+Poly PolyAdd(const Poly *p, const Poly *q) {
+    Poly result, poly, p_clone;
+    Mono temp, *p_mono, *q_mono;
+    List *p_list, *q_list, *result_list;
+    
+    if (PolyIsCoeff(p) && PolyIsCoeff(q)) {
+        result = PolyFromCoeff(p->constant_value + q->constant_value);
+    }
+    
+    else if (PolyIsCoeff(p)) {
+        poly = PolyZero();
+        p_list = poly.mono_list;
+        p_clone = PolyClone(p);
+        temp = MonoFromPoly(&p_clone, 0);
+        
+        AddMono(p_list, &temp);
+        
+        result = PolyAdd(&poly, q);
+    }
+    
+    else if (PolyIsCoeff(q)) {
+        result = PolyAdd(q, p);
+    }
+    
+    else {
+        result = PolyZero();
+        result_list = result.mono_list;
+        while (GetElement(p_list) != NULL && GetElement(q_list) != NULL) {
+            p_mono = GetElement(p_list);
+            q_mono = GetElement(q_list);
+            
+            if (p_mono->exp < q_mono->exp) {
+                AddMono(result_list, p_mono);
+                
+                p_list = GetNext(p_list);
+            }
+            else if (p_mono->exp > q_mono->exp) {
+                AddMono(result_list, q_mono);
+                
+                q_list = GetNext(q_list);
+            }
+            else // (p_mono->exp == q_mono->exp) {
+                poly = PolyAdd(&(p_mono->p), &(q_mono->p));
+                
+                temp = MonoFromPoly(&poly, p_mono->exp);
+                
+                AddMono(result_list, &temp);
+                
+                p_list = GetNext(p_list);
+                q_list = GetNext(q_list);
+            }
+        }
+        
+        while (GetElement(p_list) != NULL) {
+            p_mono = GetElement(p_list);
+            
+            AddMono(result_list, p_mono);
+            
+            p_list = GetNext(p_list);
+        }
+        
+        while (GetElement(q_list) != NULL) {
+            q_mono = GetElement(q_list);
+            
+            AddMono(result_list, q_mono);
+            
+            q_list = GetNext(q_list);
+        }
+    
+    return result;
 }
 
 int Cmp(const void *x, const void *y) {
@@ -65,8 +148,8 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
     
     for(unsigned indeks = 0; indeks < count; indeks++) {
         if (last_mono.exp != monos[indeks].exp) {
-            if (last_mono.exp != -1 || !PolyIsZero(&last_mono.p)) {
-                AddElement(poly.mono_list, (void*) &last_mono);
+            if (last_mono.exp != -1) {
+                AddMono(poly.mono_list, &last_mono);
             }
             last_mono = monos[indeks];
         }
@@ -75,8 +158,8 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
             last_mono = MonoFromPoly(&temp, last_mono.exp);
         }
     }
-    if (last_mono.exp != -1 || !PolyIsZero(&last_mono.p)) {
-        AddElement(poly.mono_list, (void*) &last_mono);
+    if (last_mono.exp != -1) {
+        AddMono(poly.mono_list, &last_mono);
     }
     
     return poly;

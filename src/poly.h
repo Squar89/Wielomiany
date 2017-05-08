@@ -76,7 +76,7 @@ static inline Mono MonoFromPoly(Poly *p, poly_exp_t e) {
  * @return Czy wielomian jest współczynnikiem?
  */
 static inline bool PolyIsCoeff(const Poly *p) {
-    return p->mono_list == NULL;
+    return IsEmpty(p->mono_list);
 }
 
 /**
@@ -85,7 +85,7 @@ static inline bool PolyIsCoeff(const Poly *p) {
  * @return Czy wielomian jest równy zero?
  */
 static inline bool PolyIsZero(const Poly *p) {
-    return (p->mono_list == NULL && p->constant_value == 0);
+    return IsEmpty(p->mono_list) && p->constant_value == 0;
     /* TODO jeśli coś z tym jest nie tak, to znaczy ze nie pozbywam się
      * wielomianów zerowych */
 }
