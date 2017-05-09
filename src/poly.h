@@ -12,6 +12,7 @@
 
 #include <stddef.h>
 #include <stdlib.h>
+#include <assert.h>
 #include "list.h"
 
 /** Typ współczynników wielomianu */
@@ -217,6 +218,9 @@ bool PolyIsEq(const Poly *p, const Poly *q);
 Poly PolyAt(const Poly *p, poly_coeff_t x);
 //szybkie potegowanie i nic specjalnego
 
+void PolyToString(Poly *p);
+
+void MonoToString(Mono *m);
 #endif /* __POLY_H__ */
 
 /*

@@ -84,13 +84,14 @@ List* CloneList(void* (*Clone)(void*), List *list_in) {
     
     list = SetupList();
     
-    while (GetElement(GetNext(list_in)) != NULL) {
-        copy = Clone(GetElement(GetNext(list_in)));
+    list_in = GetNext(list_in);
+    
+    while (GetElement(list_in) != NULL) {
+        copy = Clone(GetElement(list_in));
         AddElement(list, copy);
         
         list_in = GetNext(list_in);
     }
-    
     return list;
 }
 
