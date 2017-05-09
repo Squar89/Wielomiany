@@ -4,21 +4,16 @@
 void PolyDestroy(Poly *p) {
     List *mono_list = p->mono_list;
     
-    if (!IsEmpty(mono_list)) {
-        DeleteList(mono_list);
-    }
+    DeleteList(mono_list);
     
     return;
 }
 
 void* MonoCopy(void *element) {
-    Mono *copied_mono, temp;
+    Mono *copied_mono;
     
     copied_mono = (Mono*) malloc(sizeof(Mono));
-    temp = MonoClone((Mono*) element);
-    copied_mono = &temp;
-    
-    printf("\n%d", copied_mono->exp);
+    *copied_mono = MonoClone((Mono*) element);
     
     return (void*) copied_mono;
 }
@@ -33,7 +28,6 @@ Poly PolyClone(const Poly *p) {
 }
 
 void CheckPoly(Poly *poly) {
-    Poly temp;
     Mono *last_mono;
     List *list;
     poly_coeff_t constant_value;
@@ -47,24 +41,20 @@ void CheckPoly(Poly *poly) {
             
             PolyDestroy(poly);
             
-            temp = PolyFromCoeff(constant_value);
-            
-            poly = &temp;
+            *poly = PolyFromCoeff(constant_value);
         }
     }
 }
 
 void AddMono(List *list, Mono *mono) {
-    Mono temp, *new_mono;
+    Mono *new_mono;
     
     if (PolyIsZero(&(mono->p))) {
         return;
     }
     
     new_mono = (Mono*) malloc(sizeof(Mono));
-    
-    temp = MonoClone(mono);
-    new_mono = &temp;
+    *new_mono = MonoClone(mono);
     
     AddElement(list, (void*) new_mono);
     
@@ -88,7 +78,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
         p_clone = PolyClone(p);
         temp = MonoFromPoly(&p_clone, 0);
         
-        AddMono(p_list, &temp);
+        AddMono(p_list, &temp);//optymalizuj? dwa razy klunujesz mono
         
         result = PolyAdd(&poly, q);
     }
@@ -196,7 +186,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
 
 Poly PolyMul(const Poly *p, const Poly *q) {
     Poly result, temp, new_poly;
-    Mono *current_mono, *mono_to_mul, *new_mono, temp_mono;
+    Mono *current_mono, *mono_to_mul, *new_mono;
     List *p_list, *q_list;
     
     if (PolyIsCoeff(p) && PolyIsCoeff(q)) {
@@ -214,8 +204,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             new_mono = (Mono*) malloc(sizeof(Mono));
             
             temp = PolyMul(p, &(mono_to_mul->p));
-            temp_mono = MonoFromPoly(&temp, mono_to_mul->exp);
-            new_mono = &temp_mono;
+            *new_mono = MonoFromPoly(&temp, mono_to_mul->exp);
             
             new_poly = PolyZero();
             AddMono(new_poly.mono_list, new_mono);
@@ -250,10 +239,9 @@ Poly PolyMul(const Poly *p, const Poly *q) {
                 new_mono = (Mono*) malloc(sizeof(Mono));
                 
                 temp = PolyMul(&(current_mono->p), &(mono_to_mul->p));
-                temp_mono =
+                *new_mono =
                     MonoFromPoly(&temp, current_mono->exp + mono_to_mul->exp);
-                new_mono = &temp_mono;
-                
+                                
                 new_poly = PolyZero();
                 AddMono(new_poly.mono_list, new_mono);
                 
@@ -432,6 +420,7 @@ Poly PolyAt(const Poly *p, poly_coeff_t x) {
         result = PolyAdd(&result, &temp);
         
         PolyDestroy(&new_poly);
+        PolyDestroy(&temp);
         
         p_list = GetNext(p_list);
     }
@@ -447,6 +436,7 @@ void PolyToString(Poly *p) {
     
     if(PolyIsCoeff(p)) {
         printf("%ld", p->constant_value);
+        
     }
     else {
         list = p->mono_list;
@@ -472,11 +462,40 @@ void MonoToString(Mono *m) {
     return;
 }
 
+Poly GetP(Mono *m) {
+    return m->p;
+}
+
+int GetExp(Mono *m) {
+    return m->exp;
+}
+
+List* GetList(Poly *p) {
+    return p->mono_list;
+}
+
+long GetCoeff(Poly *p) {
+    return p->constant_value;
+}
+
+Mono* Test() {
+    Poly poly;
+    Mono *mono;
+    
+    poly = PolyFromCoeff(1);
+    
+    mono = (Mono*) malloc(sizeof(Mono));
+    
+    *mono = MonoFromPoly(&poly, 6);
+    
+    return mono;
+} 
+
 int main() {
     printf("Hello\n");
-    Poly poly, poly1, *poly2, poly3, poly4;
-    Mono mono, *mono1, *mono2;
-    List *list, *list1;
+    Poly poly, poly1, *poly2, poly3, poly4, *bad_poly;
+    Mono mono, *mono1, *mono2, *mono3;
+    List *list, *list1, *list2;
     
     printf("PolyIsCoeff Test:\n");
     poly = PolyFromCoeff(0);
@@ -486,11 +505,22 @@ int main() {
     printf(PolyIsZero(&poly) ? "true\n" : "false\n");
     printf(PolyIsCoeff(&poly) ? "true\n" : "false\n");
     
+        
     printf("PolyAddMonos Test:\n");
+    Mono tab1[5] = {mono, mono, mono, mono, mono};
+    poly1 = PolyAddMonos(5, tab1);
+    //PolyToString(&poly1);
+    
+    return 0;
+}
+
+/*
+valgrind --error-exitcode=15 --leak-check=full --show-leak-kinds=all --errors-for-leak-kinds=all ./poly
+*/
+
+/*
     mono = MonoFromPoly(&poly, 5);
     MonoToString(&mono);
-    Mono tab1[5] = {mono, mono, mono, mono, mono};
-    
     poly1 = PolyFromCoeff(1);
     AddMono(poly1.mono_list, &mono);
     
@@ -504,30 +534,33 @@ int main() {
     AddElement(list1, (void*) &mono);
     mono2 = (Mono*) GetElement(GetNext(list1));
     
-    printf("%d %d", mono1->exp, mono2->exp);
+    printf("%d ", mono.exp);
+    printf("%d ", mono1->exp);//mono1->exp uninitialised
+    printf("%d ", mono2->exp);
     
     poly3 = PolyFromCoeff(3);
     poly3.mono_list = list1;
-    //poly4 = PolyClone(&poly3);
+    poly4 = PolyClone(&poly3);
     
-    //printf("%d ", poly4.constant_value);
+    printf("%ld", poly4.constant_value);
+    list2 = poly4.mono_list;
+    printf(IsEmpty(list2) ? "true\n" : "false\n");
+    printf(GetElement(list2) == NULL ? "true\n" : "false\n");
+    list2 = GetNext(list2);
+    printf(GetElement(list2) == NULL ? "true\n" : "false\n");
     
-    //PolyToString(&poly4);
+    mono3 = (Mono*) GetElement(list2);
+    bad_poly = &(mono3->p);//mono3->p uninitialised
+    PolyToString(bad_poly);
+    printf(PolyIsCoeff(bad_poly) ? "true\n" : "false\n");
+    printf("%ld\n", bad_poly->constant_value);
+    MonoToString(mono3);//problemem jest poly przy tym mono
+    PolyToString(&poly4);
      
-    //MonoToString(mono1);
+    MonoToString(mono1);
     
-    //poly2 = &(mono1->p);
-    //PolyToString(poly2);
+    poly2 = &(mono1->p);
+    PolyToString(poly2);
     
-    //printf(PolyIsCoeff(&poly1) ? "true\n" : "false\n");
-    
-    //poly1 = PolyAddMonos(5, tab1);
-    //PolyToString(&poly1);
-    
-    
-    
-    
-    //printf("%ld", )
-    
-    return 0;
-}
+    printf(PolyIsCoeff(&poly1) ? "true\n" : "false\n");
+*/

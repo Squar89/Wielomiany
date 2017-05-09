@@ -1,6 +1,7 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "list.h"
+#include <assert.h>
 
 bool CheckIfNullPointer(List *list) {
     if (list->previous == NULL || list->next == NULL) {
