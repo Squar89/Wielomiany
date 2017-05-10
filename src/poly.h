@@ -43,6 +43,7 @@ typedef struct Mono
 {
     Poly p; ///< współczynnik
     poly_exp_t exp; ///< wykładnik
+    bool is_allocated; ///< ?
 } Mono;
 
 /**
@@ -70,7 +71,7 @@ static inline Poly PolyZero() {
  * @return jednomian `p * x^e`
  */
 static inline Mono MonoFromPoly(const Poly *p, poly_exp_t e) {
-    return (Mono) {.p = *p, .exp = e};
+    return (Mono) {.p = *p, .exp = e, .is_allocated = false};
 }
 
 /**
@@ -107,7 +108,9 @@ void PolyDestroy(Poly *p);
 static inline void MonoDestroy(Mono *m) {
     /* TODO upewnij się że rzeczywiscie niszczysz */
     PolyDestroy(&(m->p));
-    free(m);
+    if(m->is_allocated) {
+        free(m);
+    }
     
     return;
 }
@@ -125,7 +128,8 @@ Poly PolyClone(const Poly *p);
  * @return skopiowany jednomian
  */
 static inline Mono MonoClone(const Mono *m) {
-    return (Mono) {.p = PolyClone(&(m->p)), .exp = m->exp};
+    return (Mono) {.p = PolyClone(&(m->p)), .exp = m->exp,
+        .is_allocated = false};
 }
 
 /**

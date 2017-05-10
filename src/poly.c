@@ -18,6 +18,7 @@ void* MonoCopy(void *element) {
     
     copied_mono = (Mono*) malloc(sizeof(Mono));
     *copied_mono = MonoClone((Mono*) element);
+    copied_mono->is_allocated = true;
     
     return (void*) copied_mono;
 }
@@ -61,6 +62,7 @@ void AddMono(List *list, Mono *mono, bool Clone) {
     if (Clone == true) {
         new_mono = (Mono*) malloc(sizeof(Mono));
         *new_mono = MonoClone(mono);
+        new_mono->is_allocated = true;
     }
     else {
         new_mono = mono;
@@ -90,6 +92,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
         
         new_mono = (Mono*) malloc(sizeof(Mono));
         *new_mono = MonoFromPoly(&p_clone, 0);
+        new_mono->is_allocated = true;
         
         AddMono(new_poly_list, new_mono, false);//nie klonuj
         
@@ -134,6 +137,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
                 
                 new_mono = (Mono*) malloc(sizeof(Mono));
                 *new_mono = MonoFromPoly(&new_poly, p_mono->exp);
+                new_mono->is_allocated = true;
                 
                 AddMono(result_list, new_mono, false);//nie klonuj
                 
@@ -195,6 +199,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
             if (last_mono.exp != -1) {
                 new_mono = (Mono*) malloc(sizeof(Mono));
                 *new_mono = MonoFromPoly(&last_mono.p, last_mono.exp);
+                new_mono->is_allocated = true;
                 
                 AddMono(poly.mono_list, new_mono, false);//nie klonuj
             }
@@ -203,8 +208,8 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
         else {
             temp = PolyAdd(&last_mono.p, &monos[indeks].p);
             
-            PolyDestroy(&last_mono.p);
-            PolyDestroy(&monos[indeks].p);
+            MonoDestroy(&last_mono);
+            MonoDestroy(&monos[indeks]);
             
             last_mono = MonoFromPoly(&temp, monos[indeks].exp);
         }
@@ -212,6 +217,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
     if (last_mono.exp != -1) {
         new_mono = (Mono*) malloc(sizeof(Mono));
         *new_mono = MonoFromPoly(&last_mono.p, last_mono.exp);
+        new_mono->is_allocated = true;
         
         AddMono(poly.mono_list, new_mono, false);//nie klonuj
     }
@@ -240,6 +246,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             
             temp = PolyMul(p, &(mono_to_mul->p));
             *new_mono = MonoFromPoly(&temp, mono_to_mul->exp);
+            new_mono->is_allocated = true;
             
             new_poly = PolyZero();
             AddMono(new_poly.mono_list, new_mono, false);//nie klonuj
@@ -277,7 +284,8 @@ Poly PolyMul(const Poly *p, const Poly *q) {
                 temp = PolyMul(&(current_mono->p), &(mono_to_mul->p));
                 *new_mono =
                     MonoFromPoly(&temp, current_mono->exp + mono_to_mul->exp);
-                                
+                new_mono->is_allocated = true;
+                
                 new_poly = PolyZero();
                 AddMono(new_poly.mono_list, new_mono, false);//nie klonuj
                 
