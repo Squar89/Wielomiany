@@ -46,16 +46,22 @@ void CheckPoly(Poly *poly) {
     }
 }
 
-void AddMono(List *list, Mono *mono) {
+void AddMono(List *list, Mono *mono, bool Clone) {
     Mono *new_mono;
     
     if (PolyIsZero(&(mono->p))) {
-        //MonoDestroy?
+        //MonoDestroy(mono);//DODANE
         return;
     }
     
     new_mono = (Mono*) malloc(sizeof(Mono));
-    *new_mono = MonoClone(mono);
+    
+    if (Clone == true) {
+        *new_mono = MonoClone(mono);
+    }
+    else {
+        new_mono = mono;
+    }
     
     AddElement(list, (void*) new_mono);
     
@@ -65,28 +71,30 @@ void AddMono(List *list, Mono *mono) {
 //upewnij sie ze mozesz przepisywac wielomiany - wolna wersja
 //lub zmien to
 Poly PolyAdd(const Poly *p, const Poly *q) {
-    Poly result, poly, p_clone;
+    Poly result, new_poly, p_clone;
     Mono temp, *p_mono, *q_mono;
-    List *p_list, *q_list, *result_list;
+    List *p_list, *q_list, *result_list, *new_poly_list;
     
     if (PolyIsCoeff(p) && PolyIsCoeff(q)) {
         result = PolyFromCoeff(p->constant_value + q->constant_value);
     }
     
     else if (PolyIsCoeff(p)) {
-        poly = PolyZero();
-        p_list = poly.mono_list;
-        p_clone = PolyClone(p);
+        new_poly = PolyZero();
+        new_poly_list = new_poly.mono_list;
+        
+        p_clone = PolyFromCoeff(p->constant_value);
         temp = MonoFromPoly(&p_clone, 0);
         
-        AddMono(p_list, &temp);//optymalizuj? dwa razy klonujesz mono
+        AddMono(new_poly_list, &temp, true);//nie klonuj
         
-        if(PolyIsZero(&poly)) {
+        if(PolyIsZero(&new_poly)) {
             result = PolyClone(q);
         }
         else {
-            result = PolyAdd(&poly, q);
+            result = PolyAdd(&new_poly, q);
         }
+        PolyDestroy(&new_poly);
     }
     
     else if (PolyIsCoeff(q)) {
@@ -107,21 +115,21 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
             q_mono = (Mono*) GetElement(q_list);
             
             if (p_mono->exp < q_mono->exp) {
-                AddMono(result_list, p_mono);
+                AddMono(result_list, p_mono, true);
                 
                 p_list = GetNext(p_list);
             }
             else if (p_mono->exp > q_mono->exp) {
-                AddMono(result_list, q_mono);
+                AddMono(result_list, q_mono, true);
                 
                 q_list = GetNext(q_list);
             }
             else /* (p_mono->exp == q_mono->exp) */ {
-                poly = PolyAdd(&(p_mono->p), &(q_mono->p));
+                new_poly = PolyAdd(&(p_mono->p), &(q_mono->p));
                 
-                temp = MonoFromPoly(&poly, p_mono->exp);
+                temp = MonoFromPoly(&new_poly, p_mono->exp);
                 
-                AddMono(result_list, &temp);
+                AddMono(result_list, &temp, true);//nie klonuj
                 
                 p_list = GetNext(p_list);
                 q_list = GetNext(q_list);
@@ -131,7 +139,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
         while (GetElement(p_list) != NULL) {
             p_mono = (Mono*) GetElement(p_list);
             
-            AddMono(result_list, p_mono);
+            AddMono(result_list, p_mono, true);
             
             p_list = GetNext(p_list);
         }
@@ -139,7 +147,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
         while (GetElement(q_list) != NULL) {
             q_mono = (Mono*) GetElement(q_list);
             
-            AddMono(result_list, q_mono);
+            AddMono(result_list, q_mono, true);
             
             q_list = GetNext(q_list);
         }
@@ -175,22 +183,24 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
     qsort((void*) monos, count, sizeof(Mono), &Cmp);
     poly = PolyZero();
     last_mono.exp = -1;
-    last_mono.p = PolyZero();
     
     for(unsigned indeks = 0; indeks < count; indeks++) {
         if (last_mono.exp != monos[indeks].exp) {
             if (last_mono.exp != -1) {
-                AddMono(poly.mono_list, &last_mono);
+                AddMono(poly.mono_list, &last_mono, true);//nie klonuj
             }
             last_mono = monos[indeks];
         }
         else {
-            temp = PolyAdd(&last_mono.p, &monos[indeks].p);//tutaj moze wyciekac jesli jakies jednomiany sie wyzeruja?
+            temp = PolyAdd(&last_mono.p, &monos[indeks].p);
+            //MonoDestroy(&last_mono);//DODANE
             last_mono = MonoFromPoly(&temp, last_mono.exp);
+            
+            //MonoDestroy(&monos[indeks]);//DODANE
         }
     }
     if (last_mono.exp != -1) {
-        AddMono(poly.mono_list, &last_mono);
+        AddMono(poly.mono_list, &last_mono, true);//nie klonuj
     }
     
     return poly;
@@ -219,7 +229,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             *new_mono = MonoFromPoly(&temp, mono_to_mul->exp);
             
             new_poly = PolyZero();
-            AddMono(new_poly.mono_list, new_mono);
+            AddMono(new_poly.mono_list, new_mono, true);//nie klonuj
             
             sum = PolyAdd(&result, &new_poly);
             PolyDestroy(&result);
@@ -257,9 +267,11 @@ Poly PolyMul(const Poly *p, const Poly *q) {
                     MonoFromPoly(&temp, current_mono->exp + mono_to_mul->exp);
                                 
                 new_poly = PolyZero();
-                AddMono(new_poly.mono_list, new_mono);
+                AddMono(new_poly.mono_list, new_mono, true);//nie klonuj
                 
-                result = PolyAdd(&result, &new_poly);
+                sum = PolyAdd(&result, &new_poly);
+                PolyDestroy(&result);
+                result = sum;
                 
                 PolyDestroy(&new_poly);
                 
@@ -423,7 +435,7 @@ poly_coeff_t FastExp(poly_coeff_t value, poly_exp_t exp) {
 }
 
 Poly PolyAt(const Poly *p, poly_coeff_t x) {
-    Poly result, new_poly, temp;
+    Poly result, sum, new_poly, temp;
     Mono *current_mono;
     List *p_list;
     poly_coeff_t value;
@@ -442,7 +454,10 @@ Poly PolyAt(const Poly *p, poly_coeff_t x) {
         new_poly = PolyFromCoeff(value);
         
         temp = PolyMul(&new_poly, &(current_mono->p));
-        result = PolyAdd(&result, &temp);
+        
+        sum = PolyAdd(&result, &temp);
+        PolyDestroy(&result);
+        result = sum;
         
         PolyDestroy(&new_poly);
         PolyDestroy(&temp);
@@ -486,39 +501,9 @@ void MonoToString(Mono *m) {
     return;
 }
 
-Mono* Test() {
-    Poly poly;
-    Mono *mono;
-    
-    poly = PolyFromCoeff(1);
-    
-    mono = (Mono*) malloc(sizeof(Mono));
-    
-    *mono = MonoFromPoly(&poly, 6);
-    
-    return mono;
-} 
-
-Poly Test2() {
-    Poly poly1, poly2;
-    Mono *mono;
-    
-    poly1 = PolyFromCoeff(0);
-    
-    mono = Test();
-    
-    AddMono(poly1.mono_list, mono);
-    
-    poly2 = PolyClone(&poly1);
-    
-    PolyDestroy(&poly1);
-    
-    return poly2;
-}
-/*
 int main() {
     printf("Hello\n");
-    Poly poly, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11;
+    Poly poly, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12;
     Mono mono, mono1, mono2, mono3, mono4, mono5, mono6, mono7;
 
     poly = PolyFromCoeff(0);
@@ -529,7 +514,7 @@ int main() {
     poly5 = PolyFromCoeff(5);
     poly6 = PolyFromCoeff(6);
     poly7 = PolyFromCoeff(7);
-    mono = MonoFromPoly(&poly, 5);
+    mono = MonoFromPoly(&poly, 10);
     printf("mono = ");MonoToString(&mono);
     mono1 = MonoFromPoly(&poly1, 6);
     printf("\nmono1 = ");MonoToString(&mono1);
@@ -546,29 +531,43 @@ int main() {
     mono7 = MonoFromPoly(&poly7, 9);
     printf("\nmono7 = ");MonoToString(&mono7);
     printf("\n");
-    
-    
-    //Mono tab1[5] = {mono, mono, mono, mono, mono};
-    //Mono tab2[1] = {mono};
     Mono tab3[3] = {mono6, mono7, mono5};
     Mono tab4[5] = {mono1, mono3, mono2, mono, mono4};
     
-    poly7 = PolyAddMonos(5, tab4);
-    poly8 = PolyFromCoeff(3);
+    poly8 = PolyAddMonos(5, tab4);
+    poly9 = PolyFromCoeff(3);
     
-    PolyToString(&poly7); printf(" * "); PolyToString(&poly8); printf(" = ");
-    poly9 = PolyMul(&poly7, &poly8);
-    PolyToString(&poly9);
+    PolyToString(&poly8); printf(" * "); PolyToString(&poly9); printf(" = ");
+    poly10 = PolyMul(&poly8, &poly9);
+    PolyToString(&poly10);
     printf("\n");
-    poly10 = PolyAddMonos(3, tab3);
-    PolyToString(&poly9);printf(" * "); PolyToString(&poly10); printf(" = ");
+    
+    poly11 = PolyAddMonos(3, tab3);
+    
+    PolyToString(&poly10);printf(" * "); PolyToString(&poly11); printf(" = ");
     printf("\n");
-    poly11 = PolyMul(&poly9, &poly10);
-    PolyToString(&poly11);
+    poly12 = PolyMul(&poly10, &poly11);
+    PolyToString(&poly12);
+    
+    PolyDestroy(&poly1);
+    PolyDestroy(&poly2);
+    PolyDestroy(&poly3);
+    PolyDestroy(&poly4);
+    PolyDestroy(&poly5);
+    PolyDestroy(&poly6);
+    PolyDestroy(&poly7);
+    PolyDestroy(&poly8);
+    PolyDestroy(&poly9);
+    PolyDestroy(&poly10);
+    PolyDestroy(&poly11);
+    PolyDestroy(&poly12);
+    
+    //ogarnij czy musisz kopiowac czy nie, pradopodobnie nie, ale tam gdzie musisz pamietaj o usunieciu oryginału
+    
     
     return 0;
 }
-*/
+
 /*
     
     //poly = Test2();
@@ -699,7 +698,7 @@ int main() {
     poly3 = PolyMul(&poly, &poly1);
     PolyToString(&poly); printf(" * "); PolyToString(&poly1); printf(" = ");
     PolyToString(&poly3);
-    printf("\n");//BUG
+    printf("\n");
     
     poly3 = PolyMul(&poly1, &poly);
     PolyToString(&poly1); printf(" * "); PolyToString(&poly1); printf(" = ");

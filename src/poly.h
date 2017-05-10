@@ -7,6 +7,8 @@
    @date 2017-04-09, 2017-05-06 TODO
 */
 
+/* TODO Niepowodzenie alokacji pamięci należy wykrywać za pomocą asercji. */
+
 #ifndef __POLY_H__
 #define __POLY_H__
 
