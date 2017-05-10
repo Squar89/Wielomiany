@@ -28,9 +28,9 @@ extern void AddElement(List *list, void *element);
 
 extern List* SetupList();
 
-extern void DeleteListElement(List *list);
+extern void DeleteListElement(void (*Delete)(void*), List *list);
 
-extern void DeleteList(List *list);
+extern void DeleteList(void (*Delete)(void*), List *list);
 
 extern List* CloneList(void* (*Clone)(void*), List *list_in);
 

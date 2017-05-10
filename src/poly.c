@@ -1,10 +1,14 @@
 #include "poly.h"
 #include <stdio.h> /* wyrzuć po debugu */
 
-void PolyDestroy(Poly *p) {
-    List *mono_list = p->mono_list;
+void MonoDestroyVoid(void *element) {
+    MonoDestroy((Mono*) element);
     
-    DeleteList(mono_list);
+    return;
+}
+
+void PolyDestroy(Poly *p) {
+    DeleteList(&MonoDestroyVoid, p->mono_list);
     
     return;
 }
@@ -508,7 +512,7 @@ void MonoToString(Mono *m) {
     printf(")x^%d ", m->exp);
     return;
 }
-
+/*
 int main() {
     printf("Hello\n");
     Poly poly, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12;
@@ -522,21 +526,21 @@ int main() {
     poly5 = PolyFromCoeff(5);
     poly6 = PolyFromCoeff(6);
     poly7 = PolyFromCoeff(7);
-    mono = MonoFromPoly(&poly, 10);
+    mono = MonoFromPoly(&poly, 1);
     printf("mono = ");MonoToString(&mono);
-    mono1 = MonoFromPoly(&poly1, 6);
+    mono1 = MonoFromPoly(&poly1, 3);
     printf("\nmono1 = ");MonoToString(&mono1);
-    mono2 = MonoFromPoly(&poly2, 7);
+    mono2 = MonoFromPoly(&poly2, 2);
     printf("\nmono2 = ");MonoToString(&mono2);
-    mono3 = MonoFromPoly(&poly3, 5);
+    mono3 = MonoFromPoly(&poly3, 2);
     printf("\nmono3 = ");MonoToString(&mono3);
     mono4 = MonoFromPoly(&poly4, 3);
     printf("\nmono4 = ");MonoToString(&mono4);
-    mono5 = MonoFromPoly(&poly5, 4);
+    mono5 = MonoFromPoly(&poly5, 2);
     printf("\nmono5 = ");MonoToString(&mono5);
-    mono6 = MonoFromPoly(&poly6, 8);
+    mono6 = MonoFromPoly(&poly6, 1);
     printf("\nmono6 = ");MonoToString(&mono6);
-    mono7 = MonoFromPoly(&poly7, 9);
+    mono7 = MonoFromPoly(&poly7, 4);
     printf("\nmono7 = ");MonoToString(&mono7);
     printf("\n");
     Mono tab3[3] = {mono6, mono7, mono5};
@@ -557,13 +561,6 @@ int main() {
     poly12 = PolyMul(&poly10, &poly11);
     PolyToString(&poly12);
     
-    PolyDestroy(&poly1);
-    PolyDestroy(&poly2);
-    PolyDestroy(&poly3);
-    PolyDestroy(&poly4);
-    PolyDestroy(&poly5);
-    PolyDestroy(&poly6);
-    PolyDestroy(&poly7);
     PolyDestroy(&poly8);
     PolyDestroy(&poly9);
     PolyDestroy(&poly10);
@@ -575,7 +572,7 @@ int main() {
     
     return 0;
 }
-
+*/
 /*
     
     //poly = Test2();

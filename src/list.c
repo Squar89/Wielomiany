@@ -61,18 +61,21 @@ List* SetupList() {
     return guardian;
 }
 
-void DeleteListElement(List *list) {
-    free(GetElement(list));
+void DeleteListElement(void (*Delete)(void*), List *list) {
+    if (GetElement(list) != NULL) {
+        Delete(GetElement(list));
+    }
+
     free(list);
     
     return;
 }
 
-void DeleteList(List *list) {
+void DeleteList(void (*Delete)(void*), List *list) {
     if (GetElement(GetNext(list)) != NULL) {
-        DeleteList(GetNext(list));
+        DeleteList(Delete, GetNext(list));
     }
-    DeleteListElement(list);
+    DeleteListElement(Delete, list);
     
     return;
 }
