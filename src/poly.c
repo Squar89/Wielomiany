@@ -50,13 +50,12 @@ void AddMono(List *list, Mono *mono, bool Clone) {
     Mono *new_mono;
     
     if (PolyIsZero(&(mono->p))) {
-        //MonoDestroy(mono);//DODANE
+        MonoDestroy(mono);//DODANE
         return;
     }
     
-    new_mono = (Mono*) malloc(sizeof(Mono));
-    
     if (Clone == true) {
+        new_mono = (Mono*) malloc(sizeof(Mono));
         *new_mono = MonoClone(mono);
     }
     else {
@@ -72,7 +71,7 @@ void AddMono(List *list, Mono *mono, bool Clone) {
 //lub zmien to
 Poly PolyAdd(const Poly *p, const Poly *q) {
     Poly result, new_poly, p_clone;
-    Mono temp, *p_mono, *q_mono;
+    Mono *p_mono, *q_mono, *new_mono;
     List *p_list, *q_list, *result_list, *new_poly_list;
     
     if (PolyIsCoeff(p) && PolyIsCoeff(q)) {
@@ -84,9 +83,11 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
         new_poly_list = new_poly.mono_list;
         
         p_clone = PolyFromCoeff(p->constant_value);
-        temp = MonoFromPoly(&p_clone, 0);
         
-        AddMono(new_poly_list, &temp, true);//nie klonuj
+        new_mono = (Mono*) malloc(sizeof(Mono));
+        *new_mono = MonoFromPoly(&p_clone, 0);
+        
+        AddMono(new_poly_list, new_mono, false);//nie klonuj
         
         if(PolyIsZero(&new_poly)) {
             result = PolyClone(q);
@@ -127,9 +128,10 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
             else /* (p_mono->exp == q_mono->exp) */ {
                 new_poly = PolyAdd(&(p_mono->p), &(q_mono->p));
                 
-                temp = MonoFromPoly(&new_poly, p_mono->exp);
+                new_mono = (Mono*) malloc(sizeof(Mono));
+                *new_mono = MonoFromPoly(&new_poly, p_mono->exp);
                 
-                AddMono(result_list, &temp, true);//nie klonuj
+                AddMono(result_list, new_mono, false);//nie klonuj
                 
                 p_list = GetNext(p_list);
                 q_list = GetNext(q_list);
@@ -178,7 +180,7 @@ int Cmp(const void *x, const void *y) {
 //uwazaj zeby przejmowac elementy z monos[] lub chociaz je usuwac potem
 Poly PolyAddMonos(unsigned count, const Mono monos[]) {
     Poly poly, temp;
-    Mono last_mono;
+    Mono last_mono, *new_mono;
     
     qsort((void*) monos, count, sizeof(Mono), &Cmp);
     poly = PolyZero();
@@ -187,20 +189,27 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
     for(unsigned indeks = 0; indeks < count; indeks++) {
         if (last_mono.exp != monos[indeks].exp) {
             if (last_mono.exp != -1) {
-                AddMono(poly.mono_list, &last_mono, true);//nie klonuj
+                new_mono = (Mono*) malloc(sizeof(Mono));
+                *new_mono = MonoFromPoly(&last_mono.p, last_mono.exp);
+                
+                AddMono(poly.mono_list, new_mono, false);//nie klonuj
             }
             last_mono = monos[indeks];
         }
         else {
             temp = PolyAdd(&last_mono.p, &monos[indeks].p);
-            //MonoDestroy(&last_mono);//DODANE
-            last_mono = MonoFromPoly(&temp, last_mono.exp);
             
-            //MonoDestroy(&monos[indeks]);//DODANE
+            PolyDestroy(&last_mono.p);
+            PolyDestroy(&monos[indeks].p);
+            
+            last_mono = MonoFromPoly(&temp, monos[indeks].exp);
         }
     }
     if (last_mono.exp != -1) {
-        AddMono(poly.mono_list, &last_mono, true);//nie klonuj
+        new_mono = (Mono*) malloc(sizeof(Mono));
+        *new_mono = MonoFromPoly(&last_mono.p, last_mono.exp);
+        
+        AddMono(poly.mono_list, new_mono, false);//nie klonuj
     }
     
     return poly;
@@ -229,7 +238,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             *new_mono = MonoFromPoly(&temp, mono_to_mul->exp);
             
             new_poly = PolyZero();
-            AddMono(new_poly.mono_list, new_mono, true);//nie klonuj
+            AddMono(new_poly.mono_list, new_mono, false);//nie klonuj
             
             sum = PolyAdd(&result, &new_poly);
             PolyDestroy(&result);
@@ -259,7 +268,6 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             
             while (GetElement(q_list) != NULL) {
                 mono_to_mul = (Mono*) GetElement(q_list);
-                
                 new_mono = (Mono*) malloc(sizeof(Mono));
                 
                 temp = PolyMul(&(current_mono->p), &(mono_to_mul->p));
@@ -267,7 +275,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
                     MonoFromPoly(&temp, current_mono->exp + mono_to_mul->exp);
                                 
                 new_poly = PolyZero();
-                AddMono(new_poly.mono_list, new_mono, true);//nie klonuj
+                AddMono(new_poly.mono_list, new_mono, false);//nie klonuj
                 
                 sum = PolyAdd(&result, &new_poly);
                 PolyDestroy(&result);
