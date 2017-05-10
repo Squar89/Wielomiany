@@ -187,12 +187,14 @@ int Cmp(const void *x, const void *y) {
 
 //uwazaj zeby przejmowac elementy z monos[] lub chociaz je usuwac potem
 Poly PolyAddMonos(unsigned count, const Mono monos[]) {
-    Poly poly, temp;
-    Mono *last_mono, *new_mono;
+    Poly poly, temp, p_zero;
+    Mono *last_mono, *new_mono, t;
     
     qsort((void*) monos, count, sizeof(Mono), &Cmp);
     poly = PolyZero();
-    last_mono->exp = -1;
+    p_zero = PolyZero();
+    t = MonoFromPoly(&p_zero, -1);
+    last_mono = &t;
     
     for(unsigned indeks = 0; indeks < count; indeks++) {
         if (last_mono->exp != monos[indeks].exp) {
@@ -221,7 +223,8 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
         
         AddMono(poly.mono_list, new_mono, false);//nie klonuj
     }
-    
+    PolyDestroy(&p_zero);
+
     return poly;
 }
 

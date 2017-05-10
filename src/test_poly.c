@@ -599,13 +599,11 @@ bool AtTest()
         fprintf(stderr, "[AtTest] PolyDegBy(..., 1) fail\n");
         result = false;
     }
-    
     PolyDestroy(&p);
     PolyDestroy(&p2);
     PolyDestroy(&p3);
     PolyDestroy(&p_upper_size);
     free(m);
-    
     return result;
 }
 
