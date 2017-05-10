@@ -188,35 +188,35 @@ int Cmp(const void *x, const void *y) {
 //uwazaj zeby przejmowac elementy z monos[] lub chociaz je usuwac potem
 Poly PolyAddMonos(unsigned count, const Mono monos[]) {
     Poly poly, temp;
-    Mono last_mono, *new_mono;
+    Mono *last_mono, *new_mono;
     
     qsort((void*) monos, count, sizeof(Mono), &Cmp);
     poly = PolyZero();
-    last_mono.exp = -1;
+    last_mono->exp = -1;
     
     for(unsigned indeks = 0; indeks < count; indeks++) {
-        if (last_mono.exp != monos[indeks].exp) {
-            if (last_mono.exp != -1) {
+        if (last_mono->exp != monos[indeks].exp) {
+            if (last_mono->exp != -1) {
                 new_mono = (Mono*) malloc(sizeof(Mono));
-                *new_mono = MonoFromPoly(&last_mono.p, last_mono.exp);
+                *new_mono = MonoFromPoly(&last_mono->p, last_mono->exp);
                 new_mono->is_allocated = true;
                 
                 AddMono(poly.mono_list, new_mono, false);//nie klonuj
             }
-            last_mono = monos[indeks];
+            last_mono = &monos[indeks];
         }
         else {
-            temp = PolyAdd(&last_mono.p, &monos[indeks].p);
+            temp = PolyAdd(&last_mono->p, &monos[indeks].p);
             
-            MonoDestroy(&last_mono);
+            MonoDestroy(last_mono);
             MonoDestroy(&monos[indeks]);
             
-            last_mono = MonoFromPoly(&temp, monos[indeks].exp);
+            *last_mono = MonoFromPoly(&temp, monos[indeks].exp);
         }
     }
-    if (last_mono.exp != -1) {
+    if (last_mono->exp != -1) {
         new_mono = (Mono*) malloc(sizeof(Mono));
-        *new_mono = MonoFromPoly(&last_mono.p, last_mono.exp);
+        *new_mono = MonoFromPoly(&last_mono->p, last_mono->exp);
         new_mono->is_allocated = true;
         
         AddMono(poly.mono_list, new_mono, false);//nie klonuj
