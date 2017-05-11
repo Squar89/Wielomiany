@@ -87,7 +87,6 @@ List* CloneList(void* (*Clone)(void*), List *list_in) {
     void *copy;
     
     list = SetupList();
-    
     list_in = GetNext(list_in);
     
     while (GetElement(list_in) != NULL) {
