@@ -76,9 +76,9 @@ void AddMono(List *list, Mono *mono, bool Clone) {
 //upewnij sie ze mozesz przepisywac wielomiany - wolna wersja
 //lub zmien to
 Poly PolyAdd(const Poly *p, const Poly *q) {
-    Poly result, new_poly, p_clone, q_clone;
+    Poly result, new_poly, p_clone;
     Mono *p_mono, *q_mono, *new_mono, *q_last_mono;
-    List *p_list, *q_list, *result_list, *new_poly_list;
+    List *p_list, *q_list, *result_list;
     
     if (PolyIsCoeff(p) && PolyIsCoeff(q)) {
         result = PolyFromCoeff(p->constant_value + q->constant_value);
@@ -102,7 +102,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
                 new_mono->is_allocated = true;
                 
                 result = PolyClone(q);
-                AddMono(result->mono_list, new_mono, false);
+                AddMono(result.mono_list, new_mono, false);
             }
         }
     }
@@ -197,6 +197,7 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
     t = MonoFromPoly(&p_zero, -1);
     last_mono = &t;
     
+//zmien w forze zeby dodawalo jesli kolejny ma taki sam wykladnik jak obecny
     for(unsigned indeks = 0; indeks < count; indeks++) {
         if (last_mono->exp != monos[indeks].exp) {
             if (last_mono->exp != -1) {
