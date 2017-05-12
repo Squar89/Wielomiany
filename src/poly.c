@@ -294,7 +294,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             q_list = GetNext(q_list);
         }
         
-        Mono monos[monos_count];
+        Mono *monos = calloc(monos_count, sizeof(Mono));
         queue = GetNext(queue);
         
         for (unsigned indeks = 0; indeks < monos_count; indeks++) {
@@ -307,6 +307,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
         result = PolyAddMonos(monos_count, monos);
         
         DeleteList(&free, queue);
+        free(monos);
     }
     
     else if (PolyIsCoeff(q)) {
@@ -348,7 +349,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             q_list = GetNext(q_list);
         }
         
-        Mono monos[monos_count];
+        Mono *monos = calloc(monos_count, sizeof(Mono));
         queue = GetNext(queue);
         
         for (unsigned indeks = 0; indeks < monos_count; indeks++) {
@@ -361,6 +362,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
         result = PolyAddMonos(monos_count, monos);
         
         DeleteList(&free, queue);
+        free(monos);
     }
     
     return result;
@@ -519,6 +521,7 @@ Poly PolyAt(const Poly *p, poly_coeff_t x) {
     poly_coeff_t value;
     
     result = PolyZero();
+    result.constant_value = p->constant_value;
     
     p_list = p->mono_list;
     p_list = GetNext(p_list);

@@ -86,7 +86,32 @@ void MemoryThiefTest();
 void MemoryTest();
 
 void PrintHelp(char *);
-
+/*
+void PrintPoly(const Poly *p)
+{
+    if(PolyIsCoeff(p) == true)
+    {
+        printf("%d", p->value);
+    }
+    else
+    {
+        Mono *current = p->first;
+        bool asd = false;
+        printf("(");
+        while(current != NULL)
+        {
+            if(asd == true)
+                printf(" + ");
+            else
+                asd = true;
+            PrintPoly(&current->p);
+            printf("x^%d", current->exp);
+            current = current->next;
+        }
+        printf(")");
+    }
+}
+*/
 int main(int argc, char **argv)
 {
     if (argc != 2)
@@ -104,7 +129,7 @@ int main(int argc, char **argv)
         bool res = true;
         res &= SimpleAddTest();
         res &= SimpleMulTest();
-        res &= SimpleNegTest();
+        //res &= SimpleNegTest();
         res &= SimpleSubTest();
         return !res;
     }
@@ -194,30 +219,50 @@ int main(int argc, char **argv)
     else if (strcmp(argv[1], ALL_TESTS) == 0)
     {
         int res = 0;
+        //printf("%d\n", res);
         res += SimpleArithmeticTest();
+        //printf("%d\n", res);
         res += LongPolynomialTest();
+        //printf("%d\n", res);
         MemoryThiefTest();
         MemoryTest();
         res += DegreeOpChangeTest();
+        //printf("%d\n", res);
         res += DegTest();
+        //printf("%d\n", res);
         res += SimpleAtTest2();
+        //printf("%d\n", res);
         res += AtTest();
+        //printf("%d\n", res);
         res += MulTest();
+        //printf("%d\n", res);
         res += MulTest2();
+        //printf("%d\n", res);
         res += AddTest1();
+        //printf("%d\n", res);
         res += AddTest2();
+        //printf("%d\n", res);
         res += SubTest1();
+        //printf("%d\n", res);
         res += SubTest2();
+        //printf("%d\n", res);
         res += IsEqTest();
+        //printf("%d\n", res);
         res += RarePolynomialTest();
+        //printf("%d\n", res);
         res += SimpleAddMonosTest();
+        //printf("%d\n", res);
         res += SimpleAddTest() &&
                 SimpleMulTest() &&
                 SimpleNegTest() &&
                 SimpleSubTest();//
+        //printf("%d\n", res);
         res += SimpleDegByTest() && SimpleDegTest();
+        //printf("%d\n", res);
         res += SimpleIsEqTest();
+        //printf("%d\n", res);
         res += SimpleAtTest();//
+        //printf("%d SimpleAtTest\n", res);
         res += OverflowTest();
         printf("%d of 20 tests passed\n", res);
     }
@@ -1476,6 +1521,24 @@ bool SimpleAddTest()
             C(1),
             P(C(-1), 0, C(1), 1),
             P(C(1), 1));
+    /*Poly Zero = PolyZero();
+    Poly p1 = C(1);
+    Poly p2 = P(P(C(-1), 0, C(1), 1), 0);
+    Poly pAdd = PolyAdd(&p1, &p2);
+    Poly p3 = P(P(C(1), 1), 0);*/
+
+    /*printf("start\n");
+    Poly p4 = PolyAdd(&p3, &Zero);
+    PrintPoly(&p1);
+    printf("\n");
+    PrintPoly(&p2);
+    printf("\n");
+    PrintPoly(&pAdd);
+    printf("\n");
+    PrintPoly(&p3);
+    printf("\n");
+    PrintPoly(&p4);
+    printf("\n");*/
     res &= TestAdd(
             C(1),
             P(P(C(-1), 0, C(1), 1), 0),
@@ -1520,6 +1583,8 @@ bool SimpleAddTest()
         PolyDestroy(&b);
         PolyDestroy(&c);
     }
+    if(res == 0)
+        printf("nie dziala\n");
     return res;
 }
 
@@ -1557,6 +1622,8 @@ bool SimpleAddMonosTest()
                      M(P(C(2), 1), 2), M(P(C(2), 2), 2) };
         res &= TestAddMonos(6, m, P(C(2), 0, C(1), 1, P(C(2), 1, C(2), 2), 2));
     }
+    if(res != true)
+        printf("zle\n");
     return res;
 }
 
@@ -1583,10 +1650,22 @@ bool SimpleMulTest()
             P(C(-1), 0, C(1), 1),
             P(C(1), 0, C(1), 1),
             P(C(-1), 0, C(1), 2));
+
+    /*Poly p1 = P(P(C(1), 2), 0, P(C(1), 1), 1, C(1), 2);
+    Poly p2 = P(P(C(1), 2), 0, P(C(-1), 1), 1, C(1), 2);
+    Poly p3 = P(P(C(1), 4), 0, P(C(1), 2), 2, C(1), 4);
+    Poly p4 = PolyMul(&p1, &p2);
+    PrintPoly(&p4);
+    printf("\n");
+    PrintPoly(&p3);
+    printf("\n");*/
+
     res &= TestMul(
-            P(P(C(1), 2), 0, P(C(1), 1), 1, C(1), 2),
-            P(P(C(1), 2), 0, P(C(-1), 1), 1, C(1), 2),
-            P(P(C(1), 4), 0, P(C(1), 2), 2, C(1), 4));
+            P(P(C(1), 2), 0, P(C(1), 1), 1, C(1), 2), // ((1x^2)x^0 + (1x^1)x^1 + 1x^2)
+            P(P(C(1), 2), 0, P(C(-1), 1), 1, C(1), 2), // ((1x^2)x^0 + (-1x^1)x^1 + 1x^2)
+            P(P(C(1), 4), 0, P(C(1), 2), 2, C(1), 4)); // ((1x^4)x^0 + (1x^2)x^2 + 1x^4)
+    if(res != true)
+        printf("zle\n");
     return res;
 }
 
@@ -1599,6 +1678,8 @@ bool SimpleNegTest()
     PolyDestroy(&a);
     PolyDestroy(&b);
     PolyDestroy(&c);
+    if(is_eq != true)
+        printf("zle\n");
     return is_eq;
 }
 
@@ -1620,6 +1701,8 @@ bool SimpleDegByTest()
     res &= TestDegBy(P(C(1), 1), 1, 0);
     res &= TestDegBy(POLY_P, 0, 3);
     res &= TestDegBy(POLY_P, 1, 3);
+    if(res != true)
+        printf("zle\n");
     return res;
 }
 
@@ -1630,6 +1713,8 @@ bool SimpleDegTest()
     res &= TestDeg(C(1), 0);
     res &= TestDeg(P(C(1), 1), 1);
     res &= TestDeg(POLY_P, 4);
+    if(res != true)
+        printf("zle\n");
     return res;
 }
 
@@ -1653,6 +1738,8 @@ bool SimpleIsEqTest()
         PolyDestroy(&b);
         PolyDestroy(&p);
     }
+    if(res != true)
+        printf("zle\n");
     return res;
 }
 
@@ -1664,6 +1751,8 @@ bool SimpleAtTest()
     res &= TestAt(P(C(3), 1, C(2), 3, C(1), 5), 10, C(102030));
     res &= TestAt(P(P(C(1), 4), 0, P(C(1), 2), 2, C(1), 3), 2,
                   P(C(8), 0, C(4), 2, C(1), 4));
+    if(res != true)
+        printf("zle\n");
     return res;
 }
 
@@ -1674,6 +1763,8 @@ bool OverflowTest()
     res &= TestAt(P(C(1), 64), 2, C(0));
     res &= TestAt(P(C(1), 0, C(1), 64), 2, C(1));
     res &= TestAt(P(P(C(1), 1), 64), 2, C(0));
+    if(res != true)
+        printf("zle\n");
     return res;
 }
 
