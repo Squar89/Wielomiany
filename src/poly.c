@@ -102,7 +102,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
                 new_mono->is_allocated = true;
                 
                 result = PolyClone(q);
-                AddMono(result.mono_list, new_mono, false);
+                AddMono(GetNext(result.mono_list), new_mono, false);
             }
         }
     }
@@ -543,7 +543,7 @@ int main() {
     Poly poly, poly1, poly2, poly3, poly4, poly5, poly6, poly7, poly8, poly9, poly10, poly11, poly12;
     Mono mono, mono1, mono2, mono3, mono4, mono5, mono6, mono7;
 
-    poly = PolyFromCoeff(0);
+    poly = PolyFromCoeff(1);
     poly1 = PolyFromCoeff(1);
     poly2 = PolyFromCoeff(2);
     poly3 = PolyFromCoeff(3);
@@ -568,6 +568,13 @@ int main() {
     mono7 = MonoFromPoly(&poly7, 4);
     printf("\nmono7 = ");MonoToString(&mono7);
     printf("\n");
+    
+    //AddMono(poly1.mono_list, &mono, false);
+    //PolyToString(&poly1);
+    //PolyToString(&poly2);
+    //poly3 = PolyAdd(&poly1, &poly2);
+    //PolyToString(&poly3);
+    
     Mono tab3[3] = {mono6, mono7, mono5};
     Mono tab4[5] = {mono1, mono3, mono2, mono, mono4};
     
@@ -590,10 +597,10 @@ int main() {
     PolyDestroy(&poly10);
     PolyDestroy(&poly11);
     PolyDestroy(&poly12);
-    
     return 0;
 }
-*/
+
+    */
 /*
     
     //poly = Test2();
