@@ -245,14 +245,14 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             mono_to_mul = (Mono*) GetElement(q_list);
             
             temp = PolyMul(p, &(mono_to_mul->p));
-            new_mono = (Mono*) malloc(sizeof(Mono));
-            *new_mono = MonoFromPoly(&temp, mono_to_mul->exp);
-            new_mono->is_allocated = true;
-     
-            if (!PolyIsZero(&new_mono->p)) {
+            if (!PolyIsZero(&temp)) {//zmien nazwe
+                new_mono = (Mono*) malloc(sizeof(Mono));
+                *new_mono = MonoFromPoly(&temp, mono_to_mul->exp);
+                new_mono->is_allocated = true;
+                
                 monos_count++;
+                AddMono(queue, new_mono, false);
             }
-            AddMono(queue, new_mono, false);
             
             q_list = GetNext(q_list);
         }
@@ -261,15 +261,15 @@ Poly PolyMul(const Poly *p, const Poly *q) {
         queue = GetNext(queue);
         
         for (unsigned indeks = 0; indeks < monos_count; indeks++) {
-            mono_from_queue = (Mono*) GetElement(q_list);
+            mono_from_queue = (Mono*) GetElement(queue);
             
             monos[indeks] = *mono_from_queue;
             
             queue = GetNext(queue);
         }
-        
         result = PolyAddMonos(monos_count, monos);
         
+        DeleteList(&free, queue);
     }
     
     else if (PolyIsCoeff(q)) {
@@ -291,15 +291,15 @@ Poly PolyMul(const Poly *p, const Poly *q) {
                 mono_to_mul = (Mono*) GetElement(q_list);
                 
                 temp = PolyMul(&(current_mono->p), &(mono_to_mul->p));
-                new_mono = (Mono*) malloc(sizeof(Mono));
-                *new_mono =
-                    MonoFromPoly(&temp, current_mono->exp + mono_to_mul->exp);
-                new_mono->is_allocated = true;
-                
-                if (!PolyIsZero(&new_mono->p)) {
+                if (!PolyIsZero(&temp)) {//zmien nazwe
+                    new_mono = (Mono*) malloc(sizeof(Mono));
+                    *new_mono = MonoFromPoly(
+                        &temp, current_mono->exp + mono_to_mul->exp);
+                    new_mono->is_allocated = true;
+                    
                     monos_count++;
+                    AddMono(queue, new_mono, false);
                 }
-                AddMono(queue, new_mono, false);
                 
                 q_list = GetNext(q_list);
             }
@@ -312,14 +312,15 @@ Poly PolyMul(const Poly *p, const Poly *q) {
         queue = GetNext(queue);
         
         for (unsigned indeks = 0; indeks < monos_count; indeks++) {
-            mono_from_queue = (Mono*) GetElement(q_list);
+            mono_from_queue = (Mono*) GetElement(queue);
             
             monos[indeks] = *mono_from_queue;
             
             queue = GetNext(queue);
         }
-        
         result = PolyAddMonos(monos_count, monos);
+        
+        DeleteList(&free, queue);
     }
     
     return result;
@@ -572,13 +573,12 @@ int main() {
     
     poly8 = PolyAddMonos(5, tab4);
     poly9 = PolyFromCoeff(3);
-    
+    poly11 = PolyAddMonos(3, tab3);
     PolyToString(&poly8); printf(" * "); PolyToString(&poly9); printf(" = ");
     poly10 = PolyMul(&poly8, &poly9);
     PolyToString(&poly10);
     printf("\n");
     
-    poly11 = PolyAddMonos(3, tab3);
     
     PolyToString(&poly10);printf(" * "); PolyToString(&poly11); printf(" = ");
     printf("\n");
