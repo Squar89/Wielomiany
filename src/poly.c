@@ -188,60 +188,56 @@ int Cmp(const void *x, const void *y) {
 }
 
 Poly PolyAddMonos(unsigned count, const Mono monos[]) {
-    Poly poly, temp, p_zero;
-    Mono *last_mono, *new_mono, t;
+    Poly result, poly_from_monos, poly_from_next_mono, sum;
+    Mono *mono_to_add;
+    poly_exp_t monos_exp;
     
     qsort((void*) monos, count, sizeof(Mono), &Cmp);
-    poly = PolyZero();
-    p_zero = PolyZero();
-    t = MonoFromPoly(&p_zero, -1);
-    last_mono = &t;
     
-//zmien w forze zeby dodawalo jesli kolejny ma taki sam wykladnik jak obecny
+    result = PolyZero();
+    
     for(unsigned indeks = 0; indeks < count; indeks++) {
-        if (last_mono->exp != monos[indeks].exp) {
-            if (last_mono->exp != -1) {
-                new_mono = (Mono*) malloc(sizeof(Mono));
-                *new_mono = MonoFromPoly(&last_mono->p, last_mono->exp);
-                new_mono->is_allocated = true;
-                
-                AddMono(poly.mono_list, new_mono, false);//nie klonuj
-            }
-            last_mono = &monos[indeks];
-        }
-        else {
-            temp = PolyAdd(&last_mono->p, &monos[indeks].p);
-            
-            MonoDestroy(last_mono);
-            MonoDestroy(&monos[indeks]);
-            
-            *last_mono = MonoFromPoly(&temp, monos[indeks].exp);
-        }
-    }
-    if (last_mono->exp != -1) {
-        new_mono = (Mono*) malloc(sizeof(Mono));
-        *new_mono = MonoFromPoly(&last_mono->p, last_mono->exp);
-        new_mono->is_allocated = true;
+        poly_from_monos = monos[indeks].p;
+        monos_exp = monos[indeks].exp;
         
-        AddMono(poly.mono_list, new_mono, false);//nie klonuj
+        while (indeks != count - 1 &&
+            monos[indeks].exp == monos[indeks + 1].exp) {
+            
+            poly_from_next_mono = monos[indeks + 1].p;
+            sum = PolyAdd(&poly_from_monos, &poly_from_next_mono);
+            
+            PolyDestroy(&poly_from_monos);
+            PolyDestroy(&poly_from_next_mono);
+            
+            poly_from_monos = sum;
+            
+            indeks++;
+        }
+        
+        mono_to_add = (Mono*) malloc(sizeof(Mono));
+        *mono_to_add = MonoFromPoly(&poly_from_monos, monos_exp);
+        mono_to_add->is_allocated = true;
+        
+        AddMono(result.mono_list, mono_to_add, false);//nie klonuj
     }
-    PolyDestroy(&p_zero);
 
-    return poly;
+    CheckPoly(&result);
+    
+    return result;
 }
 
 Poly PolyMul(const Poly *p, const Poly *q) {
-    Poly result, temp, new_poly, sum;
-    Mono *current_mono, *mono_to_mul, *new_mono;
-    List *p_list, *q_list;
+    Poly result, temp;
+    Mono *current_mono, *mono_to_mul, *new_mono, *mono_from_queue;
+    List *p_list, *q_list, *queue;
+    unsigned monos_count = 0;
     
     if (PolyIsCoeff(p) && PolyIsCoeff(q)) {
         result = PolyFromCoeff(p->constant_value * q->constant_value);
     }
     
     else if (PolyIsCoeff(p)) {
-        result = PolyZero();
-        
+        queue = SetupList();
         q_list = q->mono_list;
         q_list = GetNext(q_list);
         
@@ -252,18 +248,28 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             new_mono = (Mono*) malloc(sizeof(Mono));
             *new_mono = MonoFromPoly(&temp, mono_to_mul->exp);
             new_mono->is_allocated = true;
-            
-            new_poly = PolyZero();
-            AddMono(new_poly.mono_list, new_mono, false);//nie klonuj
-            
-            sum = PolyAdd(&result, &new_poly);
-            PolyDestroy(&result);
-            result = sum;
-            
-            PolyDestroy(&new_poly);
+     
+            if (!PolyIsZero(&new_mono->p)) {
+                monos_count++;
+            }
+            AddMono(queue, new_mono, false);
             
             q_list = GetNext(q_list);
         }
+        
+        Mono monos[monos_count];
+        queue = GetNext(queue);
+        
+        for (unsigned indeks = 0; indeks < monos_count; indeks++) {
+            mono_from_queue = (Mono*) GetElement(q_list);
+            
+            monos[indeks] = *mono_from_queue;
+            
+            queue = GetNext(queue);
+        }
+        
+        result = PolyAddMonos(monos_count, monos);
+        
     }
     
     else if (PolyIsCoeff(q)) {
@@ -271,8 +277,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
     }
     
     else {
-        result = PolyZero();
-        
+        queue = SetupList();
         p_list = p->mono_list;
         q_list = q->mono_list;
         
@@ -284,21 +289,17 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             
             while (GetElement(q_list) != NULL) {
                 mono_to_mul = (Mono*) GetElement(q_list);
-                new_mono = (Mono*) malloc(sizeof(Mono));
                 
                 temp = PolyMul(&(current_mono->p), &(mono_to_mul->p));
+                new_mono = (Mono*) malloc(sizeof(Mono));
                 *new_mono =
                     MonoFromPoly(&temp, current_mono->exp + mono_to_mul->exp);
                 new_mono->is_allocated = true;
                 
-                new_poly = PolyZero();
-                AddMono(new_poly.mono_list, new_mono, false);//nie klonuj
-                
-                sum = PolyAdd(&result, &new_poly);
-                PolyDestroy(&result);
-                result = sum;
-                
-                PolyDestroy(&new_poly);
+                if (!PolyIsZero(&new_mono->p)) {
+                    monos_count++;
+                }
+                AddMono(queue, new_mono, false);
                 
                 q_list = GetNext(q_list);
             }
@@ -306,9 +307,20 @@ Poly PolyMul(const Poly *p, const Poly *q) {
             p_list = GetNext(p_list);
             q_list = GetNext(q_list);
         }
+        
+        Mono monos[monos_count];
+        queue = GetNext(queue);
+        
+        for (unsigned indeks = 0; indeks < monos_count; indeks++) {
+            mono_from_queue = (Mono*) GetElement(q_list);
+            
+            monos[indeks] = *mono_from_queue;
+            
+            queue = GetNext(queue);
+        }
+        
+        result = PolyAddMonos(monos_count, monos);
     }
-    
-    CheckPoly(&result);
     
     return result;
 }
@@ -578,9 +590,6 @@ int main() {
     PolyDestroy(&poly10);
     PolyDestroy(&poly11);
     PolyDestroy(&poly12);
-    
-    //ogarnij czy musisz kopiowac czy nie, pradopodobnie nie, ale tam gdzie musisz pamietaj o usunieciu oryginału
-    
     
     return 0;
 }
