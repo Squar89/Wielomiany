@@ -1,8 +1,18 @@
+/** @file
+   Implementacja klasy wielomianów
+
+   @author Jakub Wróblewski <jw386401@students.mimuw.edu.pl>
+   @date 2017-05-13
+*/
 #include <assert.h>
 #include "poly.h"
-#include <stdio.h> /* wyrzuć po debugu */
 
-void MonoDestroyVoid(void *element) {
+/**
+ * Funkcja symetryczna do MonoDestroy, ale na potrzeby implementacji list
+ * przyjmuje voidowy wskażnik.
+ * @param[in] element : element listy (jednomian)
+ */
+static void MonoDestroyVoid(void *element) {
     MonoDestroy((Mono*) element);
     
     return;
@@ -14,7 +24,12 @@ void PolyDestroy(Poly *p) {
     return;
 }
 
-Mono* MallocMono(Mono m) {
+/**
+ * Alokuje pamięc dla wskaźnika na podany jednomian.
+ * @param[in] m : jednomian
+ * @return Wskaźnik na podany jednomian
+ */
+static Mono* MallocMono(Mono m) {
     Mono *mono;
     
     mono = (Mono*) malloc(sizeof(Mono));
@@ -25,7 +40,13 @@ Mono* MallocMono(Mono m) {
     return mono;
 }
 
-void* MonoCopy(void *element) {
+/**
+ * Funkcja symetryczna do MonoClone, ale na potrzeby implementacji list
+ * przyjmuje i zwraca voidowy wskażnik.
+ * @param[in] element : element listy (jednomian)
+ * @return kopia elementu
+ */
+static void* MonoCopy(void *element) {
     Mono *copied_mono;
      
     copied_mono = MallocMono(MonoClone((Mono*) element));
@@ -42,7 +63,12 @@ Poly PolyClone(const Poly *p) {
     return copied_poly;
 }
 
-void CheckPoly(Poly *poly) {
+/**
+ * Sprawdz czy dany wielomian nie jest postaci (coeff)x^0. jeśli jest to
+ * modyfikuje go do postaci coeff
+ * @param[in] poly : wielomian
+ */
+static void CheckPoly(Poly *poly) {
     Mono *last_mono;
     List *list;
     poly_coeff_t constant_value;
@@ -62,7 +88,13 @@ void CheckPoly(Poly *poly) {
     return;
 }
 
-void AddMono(List *list, Mono *mono, bool Clone) {
+/**
+ * Dodaje dany jednomian (lub jego kopię) na koniec podanej listy.
+ * @param[in] list : lista do której chcemy dodać jednomian
+ * @param[in] mono : jednomian
+ * @param[in] clone : czy skopiować dany jednomian przed dodaniem?
+ */
+static void AddMono(List *list, Mono *mono, bool clone) {
     Mono *new_mono;
     
     if (PolyIsZero(&(mono->p))) {
@@ -70,7 +102,7 @@ void AddMono(List *list, Mono *mono, bool Clone) {
         return;
     }
     
-    if (Clone == true) {
+    if (clone == true) {
         new_mono = MallocMono(MonoClone(mono));
     }
     else {
@@ -206,7 +238,7 @@ Poly PolyAdd(const Poly *p, const Poly *q) {
     return result;
 }
 
-int Cmp(const void *x, const void *y) {
+static int Cmp(const void *x, const void *y) {
     Mono *first_mono, *second_mono;
     
     first_mono = (Mono*) x;
@@ -397,7 +429,7 @@ Poly PolySub(const Poly *p, const Poly *q) {
     return result;
 }
 
-poly_exp_t max(poly_exp_t x, poly_exp_t y) {
+static poly_exp_t max(poly_exp_t x, poly_exp_t y) {
     if (x > y) {
         return x;
     }
@@ -499,7 +531,7 @@ bool PolyIsEq(const Poly *p, const Poly *q) {
     return true;
 }
 
-poly_coeff_t FastExp(poly_coeff_t value, poly_exp_t exp) {
+static poly_coeff_t FastExp(poly_coeff_t value, poly_exp_t exp) {
     poly_coeff_t x;
     
     if (exp == 0) {

@@ -23,7 +23,9 @@ typedef int poly_exp_t;
 
 /**
  * Struktura przechowująca wielomian
- * TODO
+ * Wielomian jest zbudowany z list jednomianów
+ * Jeśli wielomian jest stały, to jego wartość jest
+ * przechowywana w constant_value
  */
 typedef struct Poly
 {
@@ -41,7 +43,7 @@ typedef struct Mono
 {
     Poly p; ///< współczynnik
     poly_exp_t exp; ///< wykładnik
-    bool is_allocated; ///< ?
+    bool is_allocated; ///< czy został zaalokowany
 } Mono;
 
 /**
@@ -63,7 +65,7 @@ static inline Poly PolyZero() {
 
 /**
  * Tworzy jednomian `p * x^e`.
- * Tworzony jednomian przejmuje na własność (kopiuje) wielomian @p p.
+ * Przejmuje na własność zawartość struktury wskazywanej przez @p p.
  * @param[in] p : wielomian - współczynnik jednomianu
  * @param[in] e : wykładnik
  * @return jednomian `p * x^e`
@@ -110,14 +112,14 @@ static inline void MonoDestroy(Mono *m) {
 }
 
 /**
- * Robi pełną kopię wielomianu.
+ * Robi pełną, głęboką kopię wielomianu.
  * @param[in] p : wielomian
  * @return skopiowany wielomian
  */
 Poly PolyClone(const Poly *p);
 
 /**
- * Robi pełną kopię jednomianu.
+ * Robi pełną, głęboką kopię jednomianu.
  * @param[in] m : jednomian
  * @return skopiowany jednomian
  */
@@ -136,6 +138,7 @@ Poly PolyAdd(const Poly *p, const Poly *q);
 
 /**
  * Sumuje listę jednomianów i tworzy z nich wielomian.
+ * Przejmuje na własność zawartość tablicy @p monos.
  * @param[in] count : liczba jednomianów
  * @param[in] monos : tablica jednomianów
  * @return wielomian będący sumą jednomianów
@@ -206,7 +209,4 @@ bool PolyIsEq(const Poly *p, const Poly *q);
  */
 Poly PolyAt(const Poly *p, poly_coeff_t x);
 
-void PolyToString(Poly *p);
-
-void MonoToString(Mono *m);
 #endif /* __POLY_H__ */

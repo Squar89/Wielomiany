@@ -1,3 +1,9 @@
+/** @file
+   Implementacja biblioteki list
+
+   @author Jakub Wróblewski <jw386401@students.mimuw.edu.pl>
+   @date 2017-05-13
+*/
 #include <stdlib.h>
 #include <stdio.h>
 #include "list.h"
