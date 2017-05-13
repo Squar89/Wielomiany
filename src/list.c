@@ -1,7 +1,6 @@
 #include <stdlib.h>
 #include <stdio.h>
 #include "list.h"
-#include <assert.h>
 
 bool CheckIfNullPointer(List *list) {
     if (list->previous == NULL || list->next == NULL) {
@@ -65,7 +64,6 @@ void DeleteListElement(void (*Delete)(void*), List *list) {
     if (GetElement(list) != NULL) {
         Delete(GetElement(list));
     }
-
     free(list);
     
     return;
@@ -95,6 +93,7 @@ List* CloneList(void* (*Clone)(void*), List *list_in) {
         
         list_in = GetNext(list_in);
     }
+    
     return list;
 }
 

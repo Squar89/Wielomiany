@@ -4,10 +4,8 @@
    @author Jakub Pawlewicz <pan@mimuw.edu.pl>,
            Jakub Wróblewski <jw386401@students.mimuw.edu.pl>
    @copyright Uniwersytet Warszawski
-   @date 2017-04-09, 2017-05-06 TODO
+   @date 2017-04-09, 2017-05-13
 */
-
-/* TODO Niepowodzenie alokacji pamięci należy wykrywać za pomocą asercji. */
 
 #ifndef __POLY_H__
 #define __POLY_H__
@@ -90,8 +88,6 @@ static inline bool PolyIsCoeff(const Poly *p) {
  */
 static inline bool PolyIsZero(const Poly *p) {
     return IsEmpty(p->mono_list) && p->constant_value == 0;
-    /* TODO jeśli coś z tym jest nie tak, to znaczy ze nie pozbywam się
-     * wielomianów zerowych */
 }
 
 /**
@@ -99,14 +95,12 @@ static inline bool PolyIsZero(const Poly *p) {
  * @param[in] p : wielomian
  */
 void PolyDestroy(Poly *p);
-//wchodzisz rekurencyjnie i niszczysz kolejne oba poly i mono
 
 /**
  * Usuwa jednomian z pamięci.
  * @param[in] m : jednomian
  */
 static inline void MonoDestroy(Mono *m) {
-    /* TODO upewnij się że rzeczywiscie niszczysz */
     PolyDestroy(&(m->p));
     if(m->is_allocated) {
         free(m);
@@ -147,7 +141,6 @@ Poly PolyAdd(const Poly *p, const Poly *q);
  * @return wielomian będący sumą jednomianów
  */
 Poly PolyAddMonos(unsigned count, const Mono monos[]);
-//sortuje tablice i dodaje wspolczynniki mono ktore maja te same wykladniki
 
 /**
  * Mnoży dwa wielomiany.
@@ -156,8 +149,6 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]);
  * @return `p * q`
  */
 Poly PolyMul(const Poly *p, const Poly *q);
-//po prostu rekurencyjnie mnozysz wspolczynniki i dodajesz wykladniki
-//na koniec mnoze razy stała
 
 /**
  * Zwraca przeciwny wielomian.
@@ -165,7 +156,6 @@ Poly PolyMul(const Poly *p, const Poly *q);
  * @return `-p`
  */
 Poly PolyNeg(const Poly *p);
-//pomnoz przez wielomian stały rowny -1
 
 /**
  * Odejmuje wielomian od wielomianu.
@@ -174,7 +164,6 @@ Poly PolyNeg(const Poly *p);
  * @return `p - q`
  */
 Poly PolySub(const Poly *p, const Poly *q);
-//dodanie negatywnego wielomianu
 
 /**
  * Zwraca stopień wielomianu ze względu na zadaną zmienną (-1 dla wielomianu
@@ -188,10 +177,6 @@ Poly PolySub(const Poly *p, const Poly *q);
  * @return stopień wielomianu @p p z względu na zmienną o indeksie @p var_idx
  */
 poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx);
-//rozpatruje dla kazdego mono
-//wchodze odpowiednio gleboko i znajduje stopien wielomianu w dany sposob:
-//st mono = suma stopni jego wspolczynnika + jego stopien
-//st poly = max ze stopni mono
 
 /**
  * Zwraca stopień wielomianu (-1 dla wielomianu tożsamościowo równego zeru).
@@ -199,7 +184,6 @@ poly_exp_t PolyDegBy(const Poly *p, unsigned var_idx);
  * @return stopień wielomianu @p p
  */
 poly_exp_t PolyDeg(const Poly *p);
-//PolyDegBy(p, 0);
 
 /**
  * Sprawdza równość dwóch wielomianów.
@@ -208,7 +192,6 @@ poly_exp_t PolyDeg(const Poly *p);
  * @return `p = q`
  */
 bool PolyIsEq(const Poly *p, const Poly *q);
-//pilnuj sortowania i wywalania wielomianow rownych zero
 
 /**
  * Wylicza wartość wielomianu w punkcie @p x.
@@ -222,18 +205,8 @@ bool PolyIsEq(const Poly *p, const Poly *q);
  * @return @f$p(x, x_0, x_1, \ldots)@f$
  */
 Poly PolyAt(const Poly *p, poly_coeff_t x);
-//szybkie potegowanie i nic specjalnego
 
 void PolyToString(Poly *p);
 
 void MonoToString(Mono *m);
 #endif /* __POLY_H__ */
-
-/*
-Stosowane konwencje w tym projekcie:
-
-nazwy funkcji oraz typów - konwencja trzecia (camelcase z dużej litery),
-nazwy stałych - konwencja druga (duże litery i podkreślnik),
-nazwy zmiennych - konwencja pierwsza (małe litery i podkreślnik),
-nazwy typów liczbowych - konwencja pierwsza (małe litery i podkreślnik) + _t na końcu identyfikatora.
-*/
