@@ -59,14 +59,14 @@ extern List* CreateListElement(void* element);
  * Tworzy połączenie między dwoma elementami listy.
  * następnikiem pierwszej listy zostaje druga lista
  * poprzednikiem drugiej listy zostaje pierwsza lista
- * @param[in] pierwsza_lista : lista
- * @param[in] druga_lista : lista
+ * @param[in] first_list : lista
+ * @param[in] second_list : lista
  */
-extern void SetConnection(List *firstList, List *secondList);
+extern void SetConnection(List *first_list, List *second_list);
 
 /**
  * Dodaje element do listy.
- * @param[in] lista : lista do której chcemy dodać element
+ * @param[in] list : lista do której chcemy dodać element
  * @param[in] element : element który chcemy dodać
  */
 extern void AddElement(List *list, void *element);
@@ -79,22 +79,22 @@ extern List* SetupList();
 
 /**
  * Usuwa element listy wykorzystując podaną funkcję.
- * @param[in] funkcja : funkcja przy pomocy której zostanie usunięty element
+ * @param[in] Delete : funkcja przy pomocy której zostanie usunięty element
  * @param[in] list : lista
  */
 extern void DeleteListElement(void (*Delete)(void*), List *list);
 
 /**
  * Usuwa całą podaną listę wykorzystując podaną funkcję.
- * @param[in] funkcja : funkcja przy pomocy której zostanią usunięte elementy
+ * @param[in] Delete : funkcja przy pomocy której zostanią usunięte elementy
  * @param[in] list : lista do usunięca
  */
 extern void DeleteList(void (*Delete)(void*), List *list);
 
 /**
  * Klonuje listę wykorzystując podaną funkcję.
- * @param[in] funkcja : funkcja przy pomocy której zostaną skopiowane elementy
- * @param[in] list : lista do skopiowania
+ * @param[in] Clone : funkcja przy pomocy której zostaną skopiowane elementy
+ * @param[in] list_in : lista do skopiowania
  * @return kopia podanej listy
  */ 
 extern List* CloneList(void* (*Clone)(void*), List *list_in);
