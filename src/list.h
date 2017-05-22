@@ -15,9 +15,9 @@
  * oraz wskaznika na sam element
  */
 typedef struct List {
-    struct List *previous;
-    struct List *next;
-    void *element;
+    struct List *previous; ///< wskaźnik na poprzedni element listy
+    struct List *next; ///< wskaźnik na następny element listy
+    void *element; ///< wskaźnik na "zawartość" aktualnego elementu listy
 } List;
 
 /**

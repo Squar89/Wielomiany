@@ -531,6 +531,12 @@ bool PolyIsEq(const Poly *p, const Poly *q) {
     return true;
 }
 
+/**
+ * Podnosi liczbę do danej potęgi.
+ * @param[in] value : liczbą którą chcemy potęgować
+ * @param[in] exp : potęga do której chcemy podnieść liczbę
+ * @return wartość value^exp
+ */
 static poly_coeff_t FastExp(poly_coeff_t value, poly_exp_t exp) {
     poly_coeff_t x;
     
