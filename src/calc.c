@@ -4,7 +4,7 @@
    @author Jakub Wróblewski <jw386401@students.mimuw.edu.pl>
    @date 2017-05-22
 */
-
+//TODO dodaj asercje przy allocu
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -36,8 +36,7 @@ char* AddCapacityString(char* string) {
 
 char* LineToString(bool *found_EOF) {
     int size, allocated_length;
-    char next_char;
-    char *line;
+    char next_char, *line;
     
     size = 0;
     line = (char*) malloc(sizeof(char));
@@ -62,20 +61,83 @@ char* LineToString(bool *found_EOF) {
     return line;
 }
 
-Mono* AddCapacityMonos(mono* mono_array) {
-    return (Mono*)
+Mono* AddCapacityMonos(Mono* mono_array, unsigned long new_size) {
+    return (Mono*) realloc(mono_array, new_size * sizeof(char));
 }
-
-Poly* ParsePoly(char *string, bool *parse_error, int *column) {
-    Poly p;
-    Mono monos[];
+/*
+Mono* ParseMono(char *string, bool *parse_error, int *column) {
+    mono = (Mono*) malloc(sizeof(Mono));
     
-    if (!(*string) || parse_error == true) {
+    //while != ')'
+}
+*/
+Poly ParsePoly(char *string, bool *parse_error, int *column) {
+    Poly p, coeff;
+    Mono *mono, *monos;
+    poly_exp_t exp;
+    poly_coeff_t coeff_val;
+    unsigned mono_count;
+    unsigned long allocated_length;
+    
+    if (!(*string) || *parse_error == true) {
         *parse_error = true;
-        
+        //TODO co ma returnować?
     }
+    
+    if (*string == '(') {
+        mono_count = 0;
+        monos = (Mono*) malloc(sizeof(Mono));
+        allocated_length = 1;
+        
+        while (*string == '(') {
+            mono = ParseMono(++string, parse_error, column);
+            
+            if (mono_count == allocated_length) {
+                allocated_length *= 2;
+                monos = AddCapacityMonos(monos, allocated_length);
+            }
+            monos[mono_count++] = *mono;
+            free(mono);
+            
+            if (*string != ')') {
+                *parse_error = true;
+                //TODO co ma returnować?
+            }
+            string++;
+            
+            if (*string) {
+                if (*string != '+') {
+                    *parse_error = true;
+                    //TODO co ma returnować?
+                }
+                string++;
+                
+                if (!(*string) || *string != '(') {
+                    *parse_error = true;
+                    //TODO co ma returnować?
+                }
+            }
+        }
+        p = PolyAddMonos(mono_count, monos);
+        
+        free(monos);
+    }
+    else /* string to pewna liczba */ {
+        coeff_val = ParseCoeff(string);
+        p = PolyFromCoeff(coeff_val);
+    }
+    
+    return p;
+}
+/*
+poly_exp_t ParseExp(char *var, bool *parse_error, int column) {
+    
 }
 
+poly_coeff_t ParseCoeff(char *var, bool *parse_error, int column) {
+
+}
+*/
 unsigned ParseDegByVar(char *var, bool *parse_error) {
     unsigned value;
     int digit;
@@ -109,7 +171,7 @@ unsigned ParseDegByVar(char *var, bool *parse_error) {
     return value;
 }
 
-poly_coeff_t ParseCoeff(char *var, bool *parse_error) {
+poly_coeff_t ParseAtVar(char *var, bool *parse_error) {
     bool neg;
     poly_coeff_t value;
     int digit;
@@ -162,11 +224,7 @@ poly_coeff_t ParseCoeff(char *var, bool *parse_error) {
     
     return value;
 }
-/*
-poly_exp_t ParseExp(char *var, bool *parse_error, int column) {
-    
-}
-*/
+
 int main() {
     bool found_EOF, parse_error;
     int first_char_code, row, column;
@@ -251,7 +309,7 @@ int main() {
                 if (line[AT_LENGTH - 1] == ' '
                     || line[AT_LENGTH - 1] == '\0') {
                     parse_error = false;
-                    at_val = ParseCoeff(&line[AT_LENGTH], &parse_error);
+                    at_val = ParseAtVar(&line[AT_LENGTH], &parse_error);
                     //TODO
                     
                     if (parse_error) {
