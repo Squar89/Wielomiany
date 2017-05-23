@@ -91,6 +91,9 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
         
         while (*string == '(') {
             mono = ParseMono(++string, parse_error, column);
+            if (*parse_error == true) {
+                //TODO usuwaj mono?
+            }
             
             if (mono_count == allocated_length) {
                 allocated_length *= 2;
