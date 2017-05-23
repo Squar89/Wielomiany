@@ -30,6 +30,16 @@
 #define PRINT_LENGTH 6 //5 + 1
 #define POP_LENGTH 4 //3 + 1
 
+char* AddCapacityString(char* string);
+
+char* LineToString(bool *found_EOF);
+
+Mono* AddCapacityMonos(Mono* mono_array, unsigned long new_size);
+
+Mono* ParseMono(char *string, bool *parse_error, int *column);
+
+Poly ParsePoly(char *string, bool *parse_error, int *column);
+
 char* AddCapacityString(char* string) {
     return (char*) realloc(string, 2 * strlen(string) * sizeof(char));
 }
@@ -64,17 +74,47 @@ char* LineToString(bool *found_EOF) {
 Mono* AddCapacityMonos(Mono* mono_array, unsigned long new_size) {
     return (Mono*) realloc(mono_array, new_size * sizeof(char));
 }
+
 /*
-Mono* ParseMono(char *string, bool *parse_error, int *column) {
-    mono = (Mono*) malloc(sizeof(Mono));
+poly_coeff_t ParseCoeff(char *var, bool *parse_error, int column) {
+
+}
+
+poly_exp_t ParseExp(char *var, bool *parse_error, int column) {
     
-    //while != ')'
 }
 */
-Poly ParsePoly(char *string, bool *parse_error, int *column) {
-    Poly p, coeff;
-    Mono *mono, *monos;
+Mono* ParseMono(char *string, bool *parse_error, int *column) {
+    Poly coeff;
     poly_exp_t exp;
+    Mono *mono;
+    
+    coeff = ParsePoly(string, parse_error, column);
+    if (*parse_error == true) {
+        //TODO co ma returnować?
+    }
+    
+    if (*string != ',') {
+        *parse_error = true;
+        //TODO co ma returnować?
+    }
+    string++;
+    *column = *column + 1;
+    
+    exp = ParseExp(string, parse_error, column);
+    if (*parse_error == true) {
+        //TODO co ma returnować?
+    }
+    
+    mono = (Mono*) malloc(sizeof(Mono));
+    *mono = MonoFromPoly(&coeff, exp);
+    
+    return mono;
+}
+
+Poly ParsePoly(char *string, bool *parse_error, int *column) {
+    Poly p;
+    Mono *mono, *monos;
     poly_coeff_t coeff_val;
     unsigned mono_count;
     unsigned long allocated_length;
@@ -90,7 +130,9 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
         allocated_length = 1;
         
         while (*string == '(') {
-            mono = ParseMono(++string, parse_error, column);
+            string++;
+            *column = *column + 1;
+            mono = ParseMono(string, parse_error, column);
             if (*parse_error == true) {
                 //TODO usuwaj mono?
             }
@@ -107,6 +149,7 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
                 //TODO co ma returnować?
             }
             string++;
+            *column = *column + 1;
             
             if (*string) {
                 if (*string != '+') {
@@ -114,6 +157,7 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
                     //TODO co ma returnować?
                 }
                 string++;
+                *column = *column + 1;
                 
                 if (!(*string) || *string != '(') {
                     *parse_error = true;
@@ -132,15 +176,6 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
     
     return p;
 }
-/*
-poly_exp_t ParseExp(char *var, bool *parse_error, int column) {
-    
-}
-
-poly_coeff_t ParseCoeff(char *var, bool *parse_error, int column) {
-
-}
-*/
 unsigned ParseDegByVar(char *var, bool *parse_error) {
     unsigned value;
     int digit;
@@ -338,7 +373,7 @@ int main() {
             }
         }
         else if (line[0] != EOF) {
-            //poly = ParsePoly(line, &found_EOF, 1);
+            poly = ParsePoly(line, &found_EOF, &column);
             
         }
         else /* first_char == EOF */ {
