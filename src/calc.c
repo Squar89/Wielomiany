@@ -34,16 +34,14 @@ char* AddCapacityString(char* string) {
     return (char*) realloc(string, 2 * strlen(string) * sizeof(char));
 }
 
-char* ParseCommand(char first_char, bool *found_EOF) {
+char* LineToString(bool *found_EOF) {
     int size, allocated_length;
     char next_char;
-    char *command;
+    char *line;
     
     size = 0;
-    command = (char*) malloc(sizeof(char));
+    line = (char*) malloc(sizeof(char));
     allocated_length = 1;
-    command[size++] = first_char;
-    
     
     while (!(*found_EOF)) {
         next_char = fgetc(stdin);
@@ -55,13 +53,27 @@ char* ParseCommand(char first_char, bool *found_EOF) {
         }
         
         if (size == allocated_length) {
-            command = AddCapacityString(command);
+            line = AddCapacityString(line);
             allocated_length *= 2;
         }
-        command[size++] = next_char;
+        line[size++] = next_char;
     }
     
-    return command;
+    return line;
+}
+
+Mono* AddCapacityMonos(mono* mono_array) {
+    return (Mono*)
+}
+
+Poly* ParsePoly(char *string, bool *parse_error, int *column) {
+    Poly p;
+    Mono monos[];
+    
+    if (!(*string) || parse_error == true) {
+        *parse_error = true;
+        
+    }
 }
 
 unsigned ParseDegByVar(char *var, bool *parse_error) {
@@ -97,7 +109,7 @@ unsigned ParseDegByVar(char *var, bool *parse_error) {
     return value;
 }
 
-poly_coeff_t ParseAtVar(char *var, bool *parse_error) {
+poly_coeff_t ParseCoeff(char *var, bool *parse_error) {
     bool neg;
     poly_coeff_t value;
     int digit;
@@ -150,74 +162,79 @@ poly_coeff_t ParseAtVar(char *var, bool *parse_error) {
     
     return value;
 }
-
+/*
+poly_exp_t ParseExp(char *var, bool *parse_error, int column) {
+    
+}
+*/
 int main() {
     bool found_EOF, parse_error;
-    int first_char_code, row;
-    char first_char, *command;
+    int first_char_code, row, column;
+    char *line;
     poly_coeff_t at_val;
     unsigned deg_var;
+    Poly poly;
     
     found_EOF = false;
     row = 0;
     
     while (!found_EOF) {
+        column = 0;
         row++;
-        first_char = fgetc(stdin);
-        first_char_code = (int) first_char;
+        line = LineToString(&found_EOF);
+        first_char_code = (int) line[0];
         
         if ((ASCII_A <= first_char_code && first_char_code <= ASCII_Z)
             || (ASCII_a <= first_char_code && first_char_code <= ASCII_z)) {
             
-            command = ParseCommand(first_char, &found_EOF);
-            printf("command: %s\n", command);
+            printf("command: %s\n", line);
             
-            if (strncmp(command, "ZERO", ZERO_LENGTH) == 0) {
+            if (strncmp(line, "ZERO", ZERO_LENGTH) == 0) {
                 printf("ZERO\n\n");
                 //TODO
             }
-            else if (strncmp(command, "IS_COEFF", IS_COEFF_LENGTH) == 0) {
+            else if (strncmp(line, "IS_COEFF", IS_COEFF_LENGTH) == 0) {
                 printf("IS_COEFF\n\n");
                 //TODO
             }
-            else if (strncmp(command, "IS_ZERO", IS_ZERO_LENGTH) == 0) {
+            else if (strncmp(line, "IS_ZERO", IS_ZERO_LENGTH) == 0) {
                 printf("IS_ZERO\n\n");
                 //TODO
             }
-            else if (strncmp(command, "CLONE", CLONE_LENGTH) == 0) {
+            else if (strncmp(line, "CLONE", CLONE_LENGTH) == 0) {
                 printf("CLONE\n\n");
                 //TODO
             }
-            else if (strncmp(command, "ADD", ADD_LENGTH) == 0) {
+            else if (strncmp(line, "ADD", ADD_LENGTH) == 0) {
                 printf("ADD\n\n");
                 //TODO
             }
-            else if (strncmp(command, "MUL", MUL_LENGTH) == 0) {
+            else if (strncmp(line, "MUL", MUL_LENGTH) == 0) {
                 printf("MUL\n\n");
                 //TODO
             }
-            else if (strncmp(command, "NEG", NEG_LENGTH) == 0) {
+            else if (strncmp(line, "NEG", NEG_LENGTH) == 0) {
                 printf("NEG\n\n");
                 //TODO
             }
-            else if (strncmp(command, "SUB", SUB_LENGTH) == 0) {
+            else if (strncmp(line, "SUB", SUB_LENGTH) == 0) {
                 printf("SUB\n\n");
                 //TODO
             }
-            else if (strncmp(command, "IS_EQ", IS_EQ_LENGTH) == 0) {
+            else if (strncmp(line, "IS_EQ", IS_EQ_LENGTH) == 0) {
                 printf("IS_EQ\n\n");
                 //TODO
             }
-            else if (strncmp(command, "DEG", DEG_LENGTH) == 0) {
+            else if (strncmp(line, "DEG", DEG_LENGTH) == 0) {
                 printf("DEG\n\n");
                 //TODO
             }
-            else if (strncmp(command, "DEG_BY", DEG_BY_LENGTH - 1) == 0) {
-                if (command[DEG_BY_LENGTH - 1] == ' '
-                    || command[DEG_BY_LENGTH - 1] == '\0') {
+            else if (strncmp(line, "DEG_BY", DEG_BY_LENGTH - 1) == 0) {
+                if (line[DEG_BY_LENGTH - 1] == ' '
+                    || line[DEG_BY_LENGTH - 1] == '\0') {
                     parse_error = false;
                     deg_var = ParseDegByVar(
-                        &command[DEG_BY_LENGTH], &parse_error);
+                        &line[DEG_BY_LENGTH], &parse_error);
                     //TODO
                     
                     if (parse_error) {
@@ -230,11 +247,11 @@ int main() {
                     fprintf(stderr, "ERROR %d WRONG COMMAND\n", row);
                 }
             }
-            else if (strncmp(command, "AT", AT_LENGTH - 1) == 0) {
-                if (command[AT_LENGTH - 1] == ' '
-                    || command[AT_LENGTH - 1] == '\0') {
+            else if (strncmp(line, "AT", AT_LENGTH - 1) == 0) {
+                if (line[AT_LENGTH - 1] == ' '
+                    || line[AT_LENGTH - 1] == '\0') {
                     parse_error = false;
-                    at_val = ParseAtVar(&command[AT_LENGTH], &parse_error);
+                    at_val = ParseCoeff(&line[AT_LENGTH], &parse_error);
                     //TODO
                     
                     if (parse_error) {
@@ -247,11 +264,11 @@ int main() {
                     fprintf(stderr, "ERROR %d WRONG COMMAND\n", row);
                 }
             }
-            else if (strncmp(command, "PRINT", PRINT_LENGTH) == 0) {
+            else if (strncmp(line, "PRINT", PRINT_LENGTH) == 0) {
                 printf("PRINT\n\n");
                 //TODO
             }
-            else if (strncmp(command, "POP", POP_LENGTH) == 0) {
+            else if (strncmp(line, "POP", POP_LENGTH) == 0) {
                 printf("POP\n\n");
                 //TODO
             }
@@ -259,8 +276,9 @@ int main() {
                 fprintf(stderr, "ERROR %d WRONG COMMAND\n", row);
             }
         }
-        else if (first_char != EOF) {
-            printf("poly: TODO\n");//TODO
+        else if (line[0] != EOF) {
+            //poly = ParsePoly(line, &found_EOF, 1);
+            
         }
         else /* first_char == EOF */ {
             found_EOF = true;
