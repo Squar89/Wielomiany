@@ -27,8 +27,7 @@ typedef int poly_exp_t;
  * Jeśli wielomian jest stały, to jego wartość jest
  * przechowywana w constant_value
  */
-typedef struct Poly
-{
+typedef struct Poly {
     List *mono_list; ///< lista wskaźników na jednomiany wielomianu
     poly_coeff_t constant_value; ///< wartość dla stałego wielomianu
 } Poly;
@@ -39,8 +38,7 @@ typedef struct Poly
   * Współczynnik `p` może też być wielomianem.
   * Będzie on traktowany jako wielomian nad kolejną zmienną (nie nad x).
   */
-typedef struct Mono
-{
+typedef struct Mono {
     Poly p; ///< współczynnik
     poly_exp_t exp; ///< wykładnik
     bool is_allocated; ///< czy został zaalokowany
