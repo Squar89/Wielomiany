@@ -75,29 +75,32 @@ Mono* AddCapacityMonos(Mono* mono_array, unsigned long new_size) {
     return (Mono*) realloc(mono_array, new_size * sizeof(char));
 }
 
-poly_coeff_t ParseCoeff(char *string, bool *parse_error, int *column) {
+poly_coeff_t ParseCoeff(char **string, bool *parse_error, int *column) {
     bool neg;
     poly_coeff_t value;
     int digit;
     
     value = 0;
     neg = false;
-    
-    if (*string == '-') {
+    if (**string == '-') {
         neg = true;
-        string++;
-        *column = *column + 1;
+        *string++;
+        *column += *column + 1;
     }
     
-    if (!isdigit(*string)) {
+    if (!isdigit(**string)) {
         *parse_error = true;
+        printf("ParseCoeff1");
+        assert(false);
     }
     
-    while (isdigit(*string)) {
-        digit = ((int) *string) - ASCII_ZERO;
+    while (isdigit(**string)) {
+        digit = ((int) **string) - ASCII_ZERO;
         
         if (((value * 10) / 10) != value) {
             *parse_error = true;
+            printf("ParseCoeff2");
+            assert(false);
             break;
         }
         value *= 10;
@@ -105,6 +108,8 @@ poly_coeff_t ParseCoeff(char *string, bool *parse_error, int *column) {
         if (!neg) {
             if (((value + digit) - digit) != value) {
                 *parse_error = true;
+                printf("ParseCoeff3");
+                assert(false);
                 break;
             }
             value += digit;
@@ -112,14 +117,22 @@ poly_coeff_t ParseCoeff(char *string, bool *parse_error, int *column) {
         else {
             if (((value - digit) + digit) != value) {
                 *parse_error = true;
+                printf("ParseCoeff4");
+                assert(false);
                 break;
             }
             value -= digit;
         }
         
-        string++;
+        printf("%c", **string);
+        *string++;
         *column = *column + 1;
+        
+        assert(false);
+        printf(isdigit(**string)? "true" : "false");
+        assert(false);
     }
+    assert(false);
     
     return value;
 }
@@ -131,6 +144,8 @@ poly_exp_t ParseExp(char *string, bool *parse_error, int *column) {
     value = 0;
     if (!isdigit(*string)) {
         *parse_error = true;
+        printf("ParseExp1");
+        assert(false);
     }
     
     while (isdigit(*string)) {
@@ -138,12 +153,16 @@ poly_exp_t ParseExp(char *string, bool *parse_error, int *column) {
         
         if (((value * 10) / 10) != value) {
             *parse_error = true;
+            printf("ParseExp2");
+            assert(false);
             break;
         }
         value *= 10;
         
         if (((value + digit) - digit) != value) {
             *parse_error = true;
+            printf("ParseExp3");
+            assert(false);
             break;
         }
         value += digit;
@@ -162,11 +181,16 @@ Mono* ParseMono(char *string, bool *parse_error, int *column) {
     
     coeff = ParsePoly(string, parse_error, column);
     if (*parse_error == true) {
+        printf("ParseMono1");
+        assert(false);
         //TODO co ma returnować?
     }
     
     if (*string != ',') {
         *parse_error = true;
+        printf("ParseMono2");
+        printf("%c", *string);
+        //assert(false);
         //TODO co ma returnować?
     }
     string++;
@@ -174,6 +198,8 @@ Mono* ParseMono(char *string, bool *parse_error, int *column) {
     
     exp = ParseExp(string, parse_error, column);
     if (*parse_error == true) {
+        printf("ParseMono3");
+        assert(false);
         //TODO co ma returnować?
     }
     
@@ -192,6 +218,8 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
     
     if (!(*string) || *parse_error == true) {
         *parse_error = true;
+        printf("ParsePoly1");
+        assert(false);
         //TODO co ma returnować?
     }
     
@@ -205,6 +233,8 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
             *column = *column + 1;
             mono = ParseMono(string, parse_error, column);
             if (*parse_error == true) {
+                printf("ParsePoly2");
+                assert(false);
                 //TODO usuwaj mono?
             }
             
@@ -217,6 +247,8 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
             
             if (*string != ')') {
                 *parse_error = true;
+                printf("ParsePoly3");
+                assert(false);
                 //TODO co ma returnować?
             }
             string++;
@@ -225,6 +257,8 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
             if (*string) {
                 if (*string != '+') {
                     *parse_error = true;
+                    printf("ParsePoly4");
+                    assert(false);
                     //TODO co ma returnować?
                 }
                 string++;
@@ -232,6 +266,8 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
                 
                 if (!(*string) || *string != '(') {
                     *parse_error = true;
+                    printf("ParsePoly5");
+                    assert(false);
                     //TODO co ma returnować?
                 }
             }
@@ -241,7 +277,10 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
         free(monos);
     }
     else /* string to pewna liczba */ {
-        coeff_val = ParseCoeff(string, parse_error, column);
+        printf("%c\n", *string);
+        coeff_val = ParseCoeff(&string, parse_error, column);
+        printf("%c\n", *string);
+        assert(false);
         p = PolyFromCoeff(coeff_val);
     }
     
@@ -350,6 +389,7 @@ int main() {
         row++;
         line = LineToString(&found_EOF);
         first_char_code = (int) line[0];
+        parse_error = false;
         
         if ((ASCII_A <= first_char_code && first_char_code <= ASCII_Z)
             || (ASCII_a <= first_char_code && first_char_code <= ASCII_z)) {
@@ -448,6 +488,11 @@ int main() {
             PolyToString(&poly);
             printf(parse_error? " (true)\n" : " (false)\n");
             
+            if (parse_error) {
+                printf("line: %s\n", line);
+                
+                
+            }
         }
         else /* first_char == EOF */ {
             found_EOF = true;
