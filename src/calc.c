@@ -30,11 +30,57 @@
 #define PRINT_LENGTH 6 //5 + 1
 #define POP_LENGTH 4 //3 + 1
 
-char* AddCapacityString(char* string);
+typedef struct Stack {
+    Poly *top_element;
+    unsigned long size;
+} Stack;
+
+Stack SetupStack() {
+    Stack stack;
+    
+    stack.top_element = NULL;
+    stack.size = 0;
+    
+    return stack;
+}
+
+bool IsEmptyStack(Stack *stack) {
+    return stack->top_element == NULL;
+}
+
+int Size(Stack *stack) {
+    return stack->size;
+}
+
+Poly* Peek(Stack *stack) {
+    return stack->top_element;
+}
+
+void Push(Stack *stack, Poly *poly) {
+    stack->size++;
+    
+    stack->top_element = (Poly*) realloc(stack->top_element, sizeof(Poly));
+    (stack->top_element)++;
+    stack->top_element = poly;
+    
+    return;
+}
+
+Poly* Pop(Stack *stack) {
+    Poly *top;
+    
+    top = Peek(stack);
+    (stack->top_element)--;
+    stack->size--;
+    
+    return top;
+}
+
+char* AddCapacityString(char *string);
 
 char* LineToString(bool *found_EOF);
 
-Mono* AddCapacityMonos(Mono* mono_array, unsigned long new_size);
+Mono* AddCapacityMonos(Mono *mono_array, unsigned long new_size);
 
 poly_coeff_t ParseCoeff(char **string, bool *parse_error, int *column);
 
@@ -44,7 +90,11 @@ Mono ParseMono(char **string, bool *parse_error, int *column);
 
 Poly ParsePoly(char **string, bool *parse_error, int *column);
 
-char* AddCapacityString(char* string) {
+unsigned ParseDegByVar(char *var, bool *parse_error);
+
+poly_coeff_t ParseAtVar(char *var, bool *parse_error);
+
+char* AddCapacityString(char *string) {
     return (char*) realloc(string, 2 * strlen(string) * sizeof(char));
 }
 
@@ -76,7 +126,7 @@ char* LineToString(bool *found_EOF) {
 }
 
 //BUG NIE FREEUJE STAREGO?
-Mono* AddCapacityMonos(Mono* mono_array, unsigned long new_size) {
+Mono* AddCapacityMonos(Mono *mono_array, unsigned long new_size) {
     return (Mono*) realloc(mono_array, new_size * sizeof(char));
 }
 
@@ -381,7 +431,27 @@ poly_coeff_t ParseAtVar(char *var, bool *parse_error) {
     return value;
 }
 
+void test() {
+    Poly *p;
+    Poly poly1, poly2, poly3, poly4;
+    Stack stack;
+    
+    stack = SetupStack();
+    poly1 = PolyFromCoeff(1);
+    poly2 = PolyFromCoeff(2);
+    poly3 = PolyFromCoeff(3);
+    poly4 = PolyFromCoeff(4);
+    
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    Push(&stack, &poly1);
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    p = Pop(&stack);
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    printf("%d", stack.size);//size sie zmniejsza, ale prawdopodobne problemy z wskaznikami na top_element(najprawdopodobnie zepsulem arytmetyke wskaznikow)
+}
+
 int main() {
+    test();
     bool found_EOF, parse_error;
     int first_char_code, row, column;
     char *line;
