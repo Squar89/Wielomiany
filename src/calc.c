@@ -36,9 +36,13 @@ char* LineToString(bool *found_EOF);
 
 Mono* AddCapacityMonos(Mono* mono_array, unsigned long new_size);
 
-Mono* ParseMono(char *string, bool *parse_error, int *column);
+poly_coeff_t ParseCoeff(char **string, bool *parse_error, int *column);
 
-Poly ParsePoly(char *string, bool *parse_error, int *column);
+poly_exp_t ParseExp(char **string, bool *parse_error, int *column);
+
+Mono* ParseMono(char **string, bool *parse_error, int *column);
+
+Poly ParsePoly(char **string, bool *parse_error, int *column);
 
 char* AddCapacityString(char* string) {
     return (char*) realloc(string, 2 * strlen(string) * sizeof(char));
@@ -84,7 +88,7 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error, int *column) {
     neg = false;
     if (**string == '-') {
         neg = true;
-        *string++;
+        (*string)++;
         *column += *column + 1;
     }
     
@@ -124,32 +128,26 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error, int *column) {
             value -= digit;
         }
         
-        printf("%c", **string);
-        *string++;
+        (*string)++;
         *column = *column + 1;
-        
-        assert(false);
-        printf(isdigit(**string)? "true" : "false");
-        assert(false);
     }
-    assert(false);
     
     return value;
 }
 
-poly_exp_t ParseExp(char *string, bool *parse_error, int *column) {
+poly_exp_t ParseExp(char **string, bool *parse_error, int *column) {
     poly_exp_t value;
     int digit;
     
     value = 0;
-    if (!isdigit(*string)) {
+    if (!isdigit(**string)) {
         *parse_error = true;
         printf("ParseExp1");
         assert(false);
     }
     
-    while (isdigit(*string)) {
-        digit = ((int) *string) - ASCII_ZERO;
+    while (isdigit(**string)) {
+        digit = ((int) **string) - ASCII_ZERO;
         
         if (((value * 10) / 10) != value) {
             *parse_error = true;
@@ -167,14 +165,14 @@ poly_exp_t ParseExp(char *string, bool *parse_error, int *column) {
         }
         value += digit;
         
-        string++;
+        (*string)++;
         *column = *column + 1;
     }
     
     return value;
 }
 
-Mono* ParseMono(char *string, bool *parse_error, int *column) {
+Mono* ParseMono(char **string, bool *parse_error, int *column) {
     Poly coeff;
     poly_exp_t exp;
     Mono *mono;
@@ -186,14 +184,13 @@ Mono* ParseMono(char *string, bool *parse_error, int *column) {
         //TODO co ma returnować?
     }
     
-    if (*string != ',') {
+    if (**string != ',') {
         *parse_error = true;
         printf("ParseMono2");
-        printf("%c", *string);
-        //assert(false);
+        assert(false);
         //TODO co ma returnować?
     }
-    string++;
+    (*string)++;
     *column = *column + 1;
     
     exp = ParseExp(string, parse_error, column);
@@ -209,27 +206,27 @@ Mono* ParseMono(char *string, bool *parse_error, int *column) {
     return mono;
 }
 
-Poly ParsePoly(char *string, bool *parse_error, int *column) {
+Poly ParsePoly(char **string, bool *parse_error, int *column) {
     Poly p;
     Mono *mono, *monos;
     poly_coeff_t coeff_val;
     unsigned mono_count;
     unsigned long allocated_length;
     
-    if (!(*string) || *parse_error == true) {
+    if (!(**string) || *parse_error == true) {
         *parse_error = true;
         printf("ParsePoly1");
         assert(false);
         //TODO co ma returnować?
     }
     
-    if (*string == '(') {
+    if (**string == '(') {
         mono_count = 0;
         monos = (Mono*) malloc(sizeof(Mono));
         allocated_length = 1;
         
-        while (*string == '(') {
-            string++;
+        while (**string == '(') {
+            (*string)++;
             *column = *column + 1;
             mono = ParseMono(string, parse_error, column);
             if (*parse_error == true) {
@@ -245,31 +242,32 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
             monos[mono_count++] = *mono;
             free(mono);
             
-            if (*string != ')') {
+            if (**string != ')') {
                 *parse_error = true;
                 printf("ParsePoly3");
                 assert(false);
                 //TODO co ma returnować?
             }
-            string++;
+            (*string)++;
             *column = *column + 1;
             
-            if (*string) {
-                if (*string != '+') {
+            if (**string) {
+                if (**string != '+') {
                     *parse_error = true;
                     printf("ParsePoly4");
                     assert(false);
                     //TODO co ma returnować?
                 }
-                string++;
+                (*string)++;
                 *column = *column + 1;
                 
-                if (!(*string) || *string != '(') {
+                if (!(**string) || **string != '(') {
                     *parse_error = true;
                     printf("ParsePoly5");
                     assert(false);
                     //TODO co ma returnować?
                 }
+                //assert(false);
             }
         }
         p = PolyAddMonos(mono_count, monos);
@@ -277,10 +275,7 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
         free(monos);
     }
     else /* string to pewna liczba */ {
-        printf("%c\n", *string);
-        coeff_val = ParseCoeff(&string, parse_error, column);
-        printf("%c\n", *string);
-        assert(false);
+        coeff_val = ParseCoeff(string, parse_error, column);
         p = PolyFromCoeff(coeff_val);
     }
     
@@ -484,8 +479,8 @@ int main() {
             }
         }
         else if (line[0] != EOF) {
-            poly = ParsePoly(line, &found_EOF, &column);
-            PolyToString(&poly);
+            poly = ParsePoly(&line, &found_EOF, &column);
+            //PolyToString(&poly);
             printf(parse_error? " (true)\n" : " (false)\n");
             
             if (parse_error) {
