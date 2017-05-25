@@ -5,6 +5,7 @@
    @date 2017-05-13
 */
 #include <assert.h>
+#include <stdio.h>
 #include "poly.h"
 
 /**
@@ -589,4 +590,35 @@ Poly PolyAt(const Poly *p, poly_coeff_t x) {
     CheckPoly(&result);
     
     return result;
+}
+
+void PolyToString(Poly *p) {
+    Mono *mono;
+    List *list;
+    
+    if(PolyIsCoeff(p)) {
+        printf("%ld", p->constant_value);
+    }
+    else {
+        list = p->mono_list;
+        
+        list = GetNext(list);
+        
+        while (GetElement(list) != NULL) {
+            mono = (Mono*) GetElement(list);
+            
+            MonoToString(mono);
+            
+            list = GetNext(list);
+        }
+    }
+    
+    return;
+}
+
+void MonoToString(Mono *m) {
+    printf("(");
+    PolyToString(&(m->p));
+    printf(")x^%d ", m->exp);
+    return;
 }

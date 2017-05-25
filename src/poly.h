@@ -209,4 +209,8 @@ bool PolyIsEq(const Poly *p, const Poly *q);
  */
 Poly PolyAt(const Poly *p, poly_coeff_t x);
 
+void PolyToString(Poly *p);
+  
+void MonoToString(Mono *m);
+
 #endif /* __POLY_H__ */

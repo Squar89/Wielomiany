@@ -75,15 +75,86 @@ Mono* AddCapacityMonos(Mono* mono_array, unsigned long new_size) {
     return (Mono*) realloc(mono_array, new_size * sizeof(char));
 }
 
-/*
-poly_coeff_t ParseCoeff(char *var, bool *parse_error, int column) {
-
-}
-
-poly_exp_t ParseExp(char *var, bool *parse_error, int column) {
+poly_coeff_t ParseCoeff(char *string, bool *parse_error, int *column) {
+    bool neg;
+    poly_coeff_t value;
+    int digit;
     
+    value = 0;
+    neg = false;
+    
+    if (*string == '-') {
+        neg = true;
+        string++;
+        *column = *column + 1;
+    }
+    
+    if (!isdigit(*string)) {
+        *parse_error = true;
+    }
+    
+    while (isdigit(*string)) {
+        digit = ((int) *string) - ASCII_ZERO;
+        
+        if (((value * 10) / 10) != value) {
+            *parse_error = true;
+            break;
+        }
+        value *= 10;
+        
+        if (!neg) {
+            if (((value + digit) - digit) != value) {
+                *parse_error = true;
+                break;
+            }
+            value += digit;
+        }
+        else {
+            if (((value - digit) + digit) != value) {
+                *parse_error = true;
+                break;
+            }
+            value -= digit;
+        }
+        
+        string++;
+        *column = *column + 1;
+    }
+    
+    return value;
 }
-*/
+
+poly_exp_t ParseExp(char *string, bool *parse_error, int *column) {
+    poly_exp_t value;
+    int digit;
+    
+    value = 0;
+    if (!isdigit(*string)) {
+        *parse_error = true;
+    }
+    
+    while (isdigit(*string)) {
+        digit = ((int) *string) - ASCII_ZERO;
+        
+        if (((value * 10) / 10) != value) {
+            *parse_error = true;
+            break;
+        }
+        value *= 10;
+        
+        if (((value + digit) - digit) != value) {
+            *parse_error = true;
+            break;
+        }
+        value += digit;
+        
+        string++;
+        *column = *column + 1;
+    }
+    
+    return value;
+}
+
 Mono* ParseMono(char *string, bool *parse_error, int *column) {
     Poly coeff;
     poly_exp_t exp;
@@ -170,7 +241,7 @@ Poly ParsePoly(char *string, bool *parse_error, int *column) {
         free(monos);
     }
     else /* string to pewna liczba */ {
-        coeff_val = ParseCoeff(string);
+        coeff_val = ParseCoeff(string, parse_error, column);
         p = PolyFromCoeff(coeff_val);
     }
     
@@ -374,6 +445,8 @@ int main() {
         }
         else if (line[0] != EOF) {
             poly = ParsePoly(line, &found_EOF, &column);
+            PolyToString(&poly);
+            printf(parse_error? " (true)\n" : " (false)\n");
             
         }
         else /* first_char == EOF */ {
