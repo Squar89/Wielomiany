@@ -102,7 +102,6 @@ static void AddMono(List *list, Mono *mono, bool clone) {
         MonoDestroy(mono);
         return;
     }
-    
     if (clone == true) {
         new_mono = MallocMono(MonoClone(mono));
     }

@@ -40,7 +40,7 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error, int *column);
 
 poly_exp_t ParseExp(char **string, bool *parse_error, int *column);
 
-Mono* ParseMono(char **string, bool *parse_error, int *column);
+Mono ParseMono(char **string, bool *parse_error, int *column);
 
 Poly ParsePoly(char **string, bool *parse_error, int *column);
 
@@ -75,6 +75,7 @@ char* LineToString(bool *found_EOF) {
     return line;
 }
 
+//BUG NIE FREEUJE STAREGO?
 Mono* AddCapacityMonos(Mono* mono_array, unsigned long new_size) {
     return (Mono*) realloc(mono_array, new_size * sizeof(char));
 }
@@ -172,10 +173,10 @@ poly_exp_t ParseExp(char **string, bool *parse_error, int *column) {
     return value;
 }
 
-Mono* ParseMono(char **string, bool *parse_error, int *column) {
+Mono ParseMono(char **string, bool *parse_error, int *column) {
     Poly coeff;
     poly_exp_t exp;
-    Mono *mono;
+    Mono mono;
     
     coeff = ParsePoly(string, parse_error, column);
     if (*parse_error == true) {
@@ -200,18 +201,18 @@ Mono* ParseMono(char **string, bool *parse_error, int *column) {
         //TODO co ma returnować?
     }
     
-    mono = (Mono*) malloc(sizeof(Mono));
-    *mono = MonoFromPoly(&coeff, exp);
+    mono = MonoFromPoly(&coeff, exp);
     
     return mono;
 }
 
 Poly ParsePoly(char **string, bool *parse_error, int *column) {
     Poly p;
-    Mono *mono, *monos;
+    Mono mono, *monos, mono1;
     poly_coeff_t coeff_val;
     unsigned mono_count;
     unsigned long allocated_length;
+    bool flag = false;
     
     if (!(**string) || *parse_error == true) {
         *parse_error = true;
@@ -229,6 +230,10 @@ Poly ParsePoly(char **string, bool *parse_error, int *column) {
             (*string)++;
             *column = *column + 1;
             mono = ParseMono(string, parse_error, column);
+            if (!flag) {
+                flag = true;
+                mono1 = mono;
+            }
             if (*parse_error == true) {
                 printf("ParsePoly2");
                 assert(false);
@@ -239,8 +244,7 @@ Poly ParsePoly(char **string, bool *parse_error, int *column) {
                 allocated_length *= 2;
                 monos = AddCapacityMonos(monos, allocated_length);
             }
-            monos[mono_count++] = *mono;
-            free(mono);
+            monos[mono_count++] = mono;
             
             if (**string != ')') {
                 *parse_error = true;
@@ -251,32 +255,41 @@ Poly ParsePoly(char **string, bool *parse_error, int *column) {
             (*string)++;
             *column = *column + 1;
             
-            if (**string) {
-                if (**string != '+') {
-                    *parse_error = true;
-                    printf("ParsePoly4");
-                    assert(false);
-                    //TODO co ma returnować?
-                }
+            if (**string && **string == '+') {
                 (*string)++;
                 *column = *column + 1;
                 
                 if (!(**string) || **string != '(') {
                     *parse_error = true;
-                    printf("ParsePoly5");
+                    printf("ParsePoly4");
                     assert(false);
                     //TODO co ma returnować?
                 }
-                //assert(false);
+                
+                printf("%s\n", *string);
             }
         }
+                IsEmpty(mono1.p.mono_list);
+                assert(false);
+                monos[0].p.mono_list = SetupList();//Czyli z jakiegoś powodu, moje p traci dostep do swojej listy gdy tylko nie jest w ostatnim mono z petli
+                //IsEmpty(monos[0].p.mono_list);
+                PolyToString(&monos[0].p);
+                PolyToString(&monos[1].p);
+                assert(false);
+                printf("%lu %d\n", allocated_length, mono_count);
+                //MonoToString(&monos[1]);printf("\n");
+                //printf("%ld\n", monos[0].p.constant_value);
+                //assert(false);
+                //MonoToString(&monos[1]);printf("\n");
+                //z jakiegos powodu wszystkie mono rozne od tego ostatniego maja problemy z poly, chyba nie maja one list
         p = PolyAddMonos(mono_count, monos);
         
-        free(monos);
+        free(monos);//BUG
     }
     else /* string to pewna liczba */ {
         coeff_val = ParseCoeff(string, parse_error, column);
         p = PolyFromCoeff(coeff_val);
+        printf("Tworzę Poly: %ld\n", coeff_val);
     }
     
     return p;
