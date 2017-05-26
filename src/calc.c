@@ -31,21 +31,12 @@
 #define POP_LENGTH 4 //3 + 1
 
 typedef struct Stack {
-    Poly *top_element;
+    Poly **top_element;
     unsigned long size;
 } Stack;
 
-Stack SetupStack() {
-    Stack stack;
-    
-    stack.top_element = NULL;
-    stack.size = 0;
-    
-    return stack;
-}
-
 bool IsEmptyStack(Stack *stack) {
-    return stack->top_element == NULL;
+    return stack->size == 0;
 }
 
 int Size(Stack *stack) {
@@ -53,15 +44,24 @@ int Size(Stack *stack) {
 }
 
 Poly* Peek(Stack *stack) {
-    return stack->top_element;
+    return *(stack->top_element);
 }
 
 void Push(Stack *stack, Poly *poly) {
+    Poly *top;
+    
+    if (stack->size == 0) {
+        stack->top_element = NULL;
+    }
     stack->size++;
     
-    stack->top_element = (Poly*) realloc(stack->top_element, sizeof(Poly));
-    (stack->top_element)++;
-    stack->top_element = poly;
+    stack->top_element =
+        (Poly**) realloc(stack->top_element, stack->size * sizeof(Poly));
+    (*(stack->top_element))++;
+    
+    top = (Poly*) malloc(sizeof(Poly));
+    top = poly;
+    *(stack->top_element) = top;
     
     return;
 }
@@ -70,13 +70,21 @@ Poly* Pop(Stack *stack) {
     Poly *top;
     
     top = Peek(stack);
-    (stack->top_element)--;
     stack->size--;
+    (*(stack->top_element))--;
+    
+    if (stack->size == 0) {
+        free(stack->top_element);
+    }
+    else {
+        stack->top_element =
+            (Poly**) realloc(stack->top_element, stack->size * sizeof(Poly));
+    }
     
     return top;
 }
 
-char* AddCapacityString(char *string);
+char* AddCapacityString(char *string, unsigned long new_size);
 
 char* LineToString(bool *found_EOF);
 
@@ -94,8 +102,8 @@ unsigned ParseDegByVar(char *var, bool *parse_error);
 
 poly_coeff_t ParseAtVar(char *var, bool *parse_error);
 
-char* AddCapacityString(char *string) {
-    return (char*) realloc(string, 2 * strlen(string) * sizeof(char));
+char* AddCapacityString(char *string, unsigned long new_size) {
+    return (char*) realloc(string, new_size * sizeof(char));
 }
 
 char* LineToString(bool *found_EOF) {
@@ -116,18 +124,27 @@ char* LineToString(bool *found_EOF) {
         }
         
         if (size == allocated_length) {
-            line = AddCapacityString(line);
             allocated_length *= 2;
+            line = (char*) realloc(line, allocated_length * sizeof(char));
         }
         line[size++] = next_char;
     }
+    
+    if (!(*found_EOF)){
+        if (size == allocated_length) {
+            allocated_length *= 2;
+            line = (char*) realloc(line, allocated_length * sizeof(char));
+        }
+        line[size++] = '\0';
+    }
+    
     
     return line;
 }
 
 //BUG NIE FREEUJE STAREGO?
 Mono* AddCapacityMonos(Mono *mono_array, unsigned long new_size) {
-    return (Mono*) realloc(mono_array, new_size * sizeof(char));
+    return (Mono*) realloc(mono_array, new_size * sizeof(Mono));
 }
 
 poly_coeff_t ParseCoeff(char **string, bool *parse_error, int *column) {
@@ -320,8 +337,10 @@ Poly ParsePoly(char **string, bool *parse_error, int *column) {
             }
         }
                 IsEmpty(mono1.p.mono_list);
-                assert(false);
+        /*
                 monos[0].p.mono_list = SetupList();//Czyli z jakiegoś powodu, moje p traci dostep do swojej listy gdy tylko nie jest w ostatnim mono z petli
+                //(1,2)+(3,4)
+                //((1,0),2)+(3,4)
                 //IsEmpty(monos[0].p.mono_list);
                 PolyToString(&monos[0].p);
                 PolyToString(&monos[1].p);
@@ -332,8 +351,9 @@ Poly ParsePoly(char **string, bool *parse_error, int *column) {
                 //assert(false);
                 //MonoToString(&monos[1]);printf("\n");
                 //z jakiegos powodu wszystkie mono rozne od tego ostatniego maja problemy z poly, chyba nie maja one list
+        */
         p = PolyAddMonos(mono_count, monos);
-        
+
         free(monos);//BUG
     }
     else /* string to pewna liczba */ {
@@ -436,25 +456,66 @@ void test() {
     Poly poly1, poly2, poly3, poly4;
     Stack stack;
     
-    stack = SetupStack();
-    poly1 = PolyFromCoeff(1);
-    poly2 = PolyFromCoeff(2);
-    poly3 = PolyFromCoeff(3);
-    poly4 = PolyFromCoeff(4);
+    poly1 = PolyFromCoeff(10);
+    poly2 = PolyFromCoeff(20);
+    poly3 = PolyFromCoeff(30);
+    poly4 = PolyFromCoeff(40);
     
+    /*
     printf(IsEmptyStack(&stack)? "true\n" : "false\n");
     Push(&stack, &poly1);
     printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    PolyToString(Peek(&stack));printf("\n");
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
     p = Pop(&stack);
     printf(IsEmptyStack(&stack)? "true\n" : "false\n");
-    printf("%d", stack.size);//size sie zmniejsza, ale prawdopodobne problemy z wskaznikami na top_element(najprawdopodobnie zepsulem arytmetyke wskaznikow)
+    Push(&stack, &poly2);
+    Push(&stack, &poly3);
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    PolyToString(Peek(&stack));printf("\n");
+    p = Pop(&stack);
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    Push(&stack, &poly4);
+    PolyToString(Peek(&stack));printf("\n");
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    p = Pop(&stack);
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    PolyToString(Peek(&stack));printf("\n");
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    p = Pop(&stack);
+    printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    */
+    
+    Push(&stack, &poly1);
+    Push(&stack, &poly2);
+    Push(&stack, &poly3);
+    //Push(&stack, &poly4);
+    printf("Pusty? ");printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    printf("Wierzchołek: ");PolyToString(Peek(&stack));printf("\n");
+    printf("Pop\n");p = Pop(&stack);
+    
+    printf("Pusty? ");printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    printf("Wierzchołek: ");PolyToString(Peek(&stack));printf("\n");
+    printf("Pop\n");p = Pop(&stack);
+    
+    Push(&stack, &poly4);
+    
+    printf("Pusty? ");printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    printf("Wierzchołek: ");PolyToString(Peek(&stack));printf("\n");
+    printf("Pop\n");p = Pop(&stack);
+    
+    printf("Pusty? ");printf(IsEmptyStack(&stack)? "true\n" : "false\n");
+    printf("Wierzchołek: ");PolyToString(Peek(&stack));printf("\n");
+    printf("Pop\n");p = Pop(&stack);
+    
+    printf("Pusty? ");printf(IsEmptyStack(&stack)? "true\n" : "false\n");
 }
 
 int main() {
-    test();
+    //test();
     bool found_EOF, parse_error;
     int first_char_code, row, column;
-    char *line;
+    char *line, *first;
     poly_coeff_t at_val;
     unsigned deg_var;
     Poly poly;
@@ -466,11 +527,12 @@ int main() {
         column = 0;
         row++;
         line = LineToString(&found_EOF);
+        first = line;
         first_char_code = (int) line[0];
         parse_error = false;
-        
-        if ((ASCII_A <= first_char_code && first_char_code <= ASCII_Z)
-            || (ASCII_a <= first_char_code && first_char_code <= ASCII_z)) {
+        if (!found_EOF && 
+            ((ASCII_A <= first_char_code && first_char_code <= ASCII_Z)
+            || (ASCII_a <= first_char_code && first_char_code <= ASCII_z))) {
             
             printf("command: %s\n", line);
             
@@ -561,9 +623,10 @@ int main() {
                 fprintf(stderr, "ERROR %d WRONG COMMAND\n", row);
             }
         }
-        else if (line[0] != EOF) {
+        else if (!found_EOF) {
             poly = ParsePoly(&line, &found_EOF, &column);
-            //PolyToString(&poly);
+            PolyToString(&poly);
+            PolyDestroy(&poly);
             printf(parse_error? " (true)\n" : " (false)\n");
             
             if (parse_error) {
@@ -572,9 +635,11 @@ int main() {
                 
             }
         }
-        else /* first_char == EOF */ {
+        else /* found_EOF */ {
             found_EOF = true;
         }
+        
+        free(first);
     }
     
     return 0;
