@@ -37,11 +37,11 @@ typedef struct Stack {
 
 bool IsEmptyStack(Stack *stack);
 
-Stack SetupStack();
+Stack* SetupStack();
 
 Poly Peek(Stack *stack);
 
-Stack* Push(Stack *stack, Poly *poly);
+Stack* Push(Stack *stack, Poly poly);
 
 Stack* Pop(Stack *stack);
 
@@ -67,10 +67,11 @@ bool IsEmptyStack(Stack *stack) {
     return stack->previous == NULL;
 }
 
-Stack SetupStack() {
-    Stack stack;
+Stack* SetupStack() {
+    Stack *stack;
     
-    stack.previous = NULL;
+    stack = (Stack*) malloc(sizeof(Stack));
+    stack->previous = NULL;
     
     return stack;
 }
@@ -79,12 +80,12 @@ Poly Peek(Stack *stack) {
     return stack->top_element;
 }
 
-Stack* Push(Stack *stack, Poly *poly) {
+Stack* Push(Stack *stack, Poly poly) {
     Stack *new_top;
     
     new_top = (Stack*) malloc(sizeof(Stack));
     
-    new_top->top_element = *poly;
+    new_top->top_element = poly;
     new_top->previous = stack;
     
     return new_top;
@@ -98,6 +99,20 @@ Stack* Pop(Stack *stack) {
     free(stack);
     
     return previous;
+}
+
+void ClearStack(Stack *stack) {
+    Poly element;
+    
+    while (!IsEmptyStack(stack)) {
+        element = Peek(stack);
+        PolyDestroy(&element);
+        stack = Pop(stack);
+    }
+    
+    free(stack);
+    
+    return;
 }
 
 char* AddCapacityString(char *string, unsigned long new_size) {
@@ -425,6 +440,265 @@ poly_coeff_t ParseAtVar(char *var, bool *parse_error) {
     
     return value;
 }
+
+void PrintStackUnderflowError(int row) {
+    fprintf(stderr, "ERROR %d STACK UNDERFLOW\n", row);
+    
+    return;
+}
+
+Stack* ZeroCommand(Stack *stack) {
+    Poly poly_to_add;
+    
+    poly_to_add = PolyZero();
+    
+    return Push(stack, poly_to_add);
+}
+
+void IsCoeffCommand(Stack *stack, int row) {
+    Poly top;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return;
+    }
+    top = Peek(stack);
+    
+    printf(PolyIsCoeff(&top) ? "1\n" : "0\n");
+    
+    return;
+}
+
+void IsZeroCommand(Stack *stack, int row) {
+    Poly top;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return;
+    }    
+    top = Peek(stack);
+    
+    printf(PolyIsZero(&top) ? "1\n" : "0\n");
+    
+    return;
+}
+
+Stack* PolyCloneCommand(Stack *stack, int row) {
+    Poly top, cloned_top;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return stack;
+    }
+    top = Peek(stack);
+    cloned_top = PolyClone(&top);
+    
+    return Push(stack, cloned_top);
+}
+
+Stack* AddCommand(Stack *stack, int row) {
+    Poly first, second, sum;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return stack;
+    }
+    first = Peek(stack);
+    stack = Pop(stack);
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return Push(stack, first);
+    }
+    second = Peek(stack);
+    stack = Pop(stack);
+    
+    sum = PolyAdd(&first, &second);
+    
+    PolyDestroy(&first);
+    PolyDestroy(&second);
+    
+    return Push(stack, sum);
+}
+
+Stack* MulCommand(Stack *stack, int row) {
+    Poly first, second, mul;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return stack;
+    }
+    first = Peek(stack);
+    stack = Pop(stack);
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        stack = Push(stack, first);
+        
+        return stack;
+    }
+    second = Peek(stack);
+    stack = Pop(stack);
+    
+    mul = PolyAdd(&first, &second);
+    
+    PolyDestroy(&first);
+    PolyDestroy(&second);
+    
+    return Push(stack, mul);
+}
+
+Stack* NegCommand(Stack *stack, int row) {
+    Poly top, neg;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return stack;
+    }
+    top = Peek(stack);
+    stack = Pop(stack);
+    
+    neg = PolyNeg(&top);
+    
+    PolyDestroy(&top);
+    
+    return Push(stack, neg);
+}
+
+Stack* SubCommand(Stack *stack, int row) {
+    Poly first, second, neg_second, sub;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return stack;
+    }
+    first = Peek(stack);
+    stack = Pop(stack);
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return Push(stack, first);
+    }
+    second = Peek(stack);
+    stack = Pop(stack);
+    
+    neg_second = PolyNeg(&second);
+    sub = PolySub(&first, &second);
+    
+    PolyDestroy(&first);
+    PolyDestroy(&second);
+    PolyDestroy(&neg_second);
+    
+    return Push(stack, sub);
+}
+
+Stack* IsEqCommand(Stack *stack, int row) {
+    Poly first, second;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return stack;
+    }
+    first = Peek(stack);
+    stack = Pop(stack);
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return Push(stack, first);
+    }
+    second = Peek(stack);
+    stack = Push(stack, first);
+    
+    printf(PolyIsEq(&first, &second) ? "1\n" : "0\n");
+    
+    return stack;
+}
+
+void DegCommand(Stack *stack, int row) {
+    Poly top;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return;
+    }
+    top = Peek(stack);
+    
+    printf("%d\n", PolyDeg(&top));
+    
+    return;
+}
+
+void DegByCommand(Stack *stack, int row, unsigned var) {
+    Poly top;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return;
+    }
+    top = Peek(stack);
+    
+    printf("%d\n", PolyDegBy(&top, var));
+    
+    return;
+}
+
+Stack* AtCommand(Stack *stack, int row, poly_coeff_t val) {
+    Poly top, result;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return stack;
+    }
+    top = Peek(stack);
+    stack = Pop(stack);
+    
+    result = PolyAt(&top, val);
+    
+    PolyDestroy(&top);
+    
+    return Push(stack, result);
+}
+
+void PrintCommand(Stack *stack, int row) {
+    Poly top;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return;
+    }
+    top = Peek(stack);
+    
+    PolyToString(&top);
+    printf("\n");
+    
+    return;
+}
+
+Stack* PopCommand(Stack *stack, int row) {
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError(row);
+        
+        return stack;
+    }
+    
+    return Pop(stack);
+}
 /*
 void test() {
     Poly poly1, poly2, poly3, poly4, p;
@@ -479,9 +753,11 @@ int main() {
     poly_coeff_t at_val;
     unsigned deg_var;
     Poly poly;
+    Stack *stack;
     
     found_EOF = false;
     row = 0;
+    stack = SetupStack();
     
     while (!found_EOF) {
         column = 0;
@@ -497,44 +773,34 @@ int main() {
             printf("command: %s\n", line);
             
             if (strncmp(line, "ZERO", ZERO_LENGTH) == 0) {
-                printf("ZERO\n\n");
-                //TODO
+                stack = ZeroCommand(stack);
             }
             else if (strncmp(line, "IS_COEFF", IS_COEFF_LENGTH) == 0) {
-                printf("IS_COEFF\n\n");
-                //TODO
+                IsCoeffCommand(stack, row);
             }
             else if (strncmp(line, "IS_ZERO", IS_ZERO_LENGTH) == 0) {
-                printf("IS_ZERO\n\n");
-                //TODO
+                IsZeroCommand(stack, row);
             }
             else if (strncmp(line, "CLONE", CLONE_LENGTH) == 0) {
-                printf("CLONE\n\n");
-                //TODO
+                stack = PolyCloneCommand(stack, row);
             }
             else if (strncmp(line, "ADD", ADD_LENGTH) == 0) {
-                printf("ADD\n\n");
-                //TODO
+                stack = AddCommand(stack, row);
             }
             else if (strncmp(line, "MUL", MUL_LENGTH) == 0) {
-                printf("MUL\n\n");
-                //TODO
+                stack = MulCommand(stack, row);
             }
             else if (strncmp(line, "NEG", NEG_LENGTH) == 0) {
-                printf("NEG\n\n");
-                //TODO
+                stack = NegCommand(stack, row);
             }
             else if (strncmp(line, "SUB", SUB_LENGTH) == 0) {
-                printf("SUB\n\n");
-                //TODO
+                stack = SubCommand(stack, row);
             }
             else if (strncmp(line, "IS_EQ", IS_EQ_LENGTH) == 0) {
-                printf("IS_EQ\n\n");
-                //TODO
+                stack = IsEqCommand(stack, row);
             }
             else if (strncmp(line, "DEG", DEG_LENGTH) == 0) {
-                printf("DEG\n\n");
-                //TODO
+                DegCommand(stack, row);
             }
             else if (strncmp(line, "DEG_BY", DEG_BY_LENGTH - 1) == 0) {
                 if (line[DEG_BY_LENGTH - 1] == ' '
@@ -542,13 +808,14 @@ int main() {
                     parse_error = false;
                     deg_var = ParseDegByVar(
                         &line[DEG_BY_LENGTH], &parse_error);
-                    //TODO
                     
                     if (parse_error) {
                         fprintf(stderr, "ERROR %d WRONG VARIABLE\n", row);
                         parse_error = false;
                     }
-                    printf("DEG_BY %u\n\n", deg_var);
+                    else {
+                        DegByCommand(stack, row, deg_var);
+                    }
                 }
                 else {
                     fprintf(stderr, "ERROR %d WRONG COMMAND\n", row);
@@ -559,25 +826,24 @@ int main() {
                     || line[AT_LENGTH - 1] == '\0') {
                     parse_error = false;
                     at_val = ParseAtVar(&line[AT_LENGTH], &parse_error);
-                    //TODO
                     
                     if (parse_error) {
                         fprintf(stderr, "ERROR %d WRONG VALUE\n", row);
                         parse_error = false;
                     }
-                    printf("AT %ld\n\n", at_val);
+                    else {
+                        stack = AtCommand(stack, row, at_val);
+                    }
                 }
                 else {
                     fprintf(stderr, "ERROR %d WRONG COMMAND\n", row);
                 }
             }
             else if (strncmp(line, "PRINT", PRINT_LENGTH) == 0) {
-                printf("PRINT\n\n");
-                //TODO
+                PrintCommand(stack, row);
             }
             else if (strncmp(line, "POP", POP_LENGTH) == 0) {
-                printf("POP\n\n");
-                //TODO
+                PopCommand(stack, row);
             }
             else {
                 fprintf(stderr, "ERROR %d WRONG COMMAND\n", row);
@@ -601,6 +867,8 @@ int main() {
         
         free(first);
     }
+    
+    ClearStack(stack);
     
     return 0;
 }

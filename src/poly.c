@@ -609,6 +609,10 @@ void PolyToString(Poly *p) {
             MonoToString(mono);
             
             list = GetNext(list);
+            
+            if (GetElement(list) != NULL) {
+                printf("+");
+            }
         }
     }
     
@@ -618,6 +622,6 @@ void PolyToString(Poly *p) {
 void MonoToString(Mono *m) {
     printf("(");
     PolyToString(&(m->p));
-    printf(")x^%d ", m->exp);
+    printf(",%d)", m->exp);
     return;
 }
