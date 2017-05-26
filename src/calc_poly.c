@@ -4,7 +4,6 @@
    @author Jakub Wróblewski <jw386401@students.mimuw.edu.pl>
    @date 2017-05-22
 */
-//TODO dodaj asercje przy allocu
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
@@ -45,11 +44,7 @@ Stack* Push(Stack *stack, Poly poly);
 
 Stack* Pop(Stack *stack);
 
-char* AddCapacityString(char *string, unsigned long new_size);
-
 char* LineToString(bool *found_EOF);
-
-Mono* AddCapacityMonos(Mono *mono_array, unsigned long new_size);
 
 poly_coeff_t ParseCoeff(char **string, bool *parse_error);
 
@@ -63,6 +58,44 @@ unsigned ParseDegByVar(char *var, bool *parse_error);
 
 poly_coeff_t ParseAtVar(char *var, bool *parse_error);
 
+void PrintStackUnderflowError();
+
+void PrintWrongCommandError();
+
+void PrintWrongValueError();
+
+void PrintWrongVariableError();
+
+void PrintParseError();
+
+Stack* ZeroCommand(Stack *stack);
+
+void IsCoeffCommand(Stack *stack);
+
+void IsZeroCommand(Stack *stack);
+
+Stack* PolyCloneCommand(Stack *stack);
+
+Stack* AddCommand(Stack *stack);
+
+Stack* MulCommand(Stack *stack);
+
+Stack* NegCommand(Stack *stack);
+
+Stack* SubCommand(Stack *stack);
+
+Stack* IsEqCommand(Stack *stack);
+
+void DegCommand(Stack *stack);
+
+void DegByCommand(Stack *stack, unsigned var);
+
+Stack* AtCommand(Stack *stack, poly_coeff_t val);
+
+void PrintCommand(Stack *stack);
+
+Stack* PopCommand(Stack *stack);
+
 bool IsEmptyStack(Stack *stack) {
     return stack->previous == NULL;
 }
@@ -71,6 +104,7 @@ Stack* SetupStack() {
     Stack *stack;
     
     stack = (Stack*) malloc(sizeof(Stack));
+    assert(stack != NULL);
     stack->previous = NULL;
     
     return stack;
@@ -84,6 +118,7 @@ Stack* Push(Stack *stack, Poly poly) {
     Stack *new_top;
     
     new_top = (Stack*) malloc(sizeof(Stack));
+    assert(new_top != NULL);
     
     new_top->top_element = poly;
     new_top->previous = stack;
@@ -141,16 +176,13 @@ int IncrementRow(int increment) {
     return row_number;
 }
 
-char* AddCapacityString(char *string, unsigned long new_size) {
-    return (char*) realloc(string, new_size * sizeof(char));
-}
-
 char* LineToString(bool *found_EOF) {
     int size, allocated_length;
     char next_char, *line;
     
     size = 0;
     line = (char*) malloc(sizeof(char));
+    assert(line != NULL);
     allocated_length = 1;
     
     while (!(*found_EOF)) {
@@ -165,6 +197,7 @@ char* LineToString(bool *found_EOF) {
         if (size == allocated_length) {
             allocated_length *= 2;
             line = (char*) realloc(line, allocated_length * sizeof(char));
+            assert(line != NULL);
         }
         line[size++] = next_char;
     }
@@ -173,16 +206,13 @@ char* LineToString(bool *found_EOF) {
         if (size == allocated_length) {
             allocated_length *= 2;
             line = (char*) realloc(line, allocated_length * sizeof(char));
+            assert(line != NULL);
         }
         line[size++] = '\0';
     }
     
     
     return line;
-}
-
-Mono* AddCapacityMonos(Mono *mono_array, unsigned long new_size) {
-    return (Mono*) realloc(mono_array, new_size * sizeof(Mono));
 }
 
 poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
@@ -328,6 +358,7 @@ Poly ParsePoly(char **string, bool *parse_error) {
     if (**string == '(') {
         mono_count = 0;
         monos = (Mono*) malloc(sizeof(Mono));
+        assert(monos != NULL);
         allocated_length = 1;
         
         while (**string == '(') {
@@ -342,7 +373,8 @@ Poly ParsePoly(char **string, bool *parse_error) {
             
             if (mono_count == allocated_length) {
                 allocated_length *= 2;
-                monos = AddCapacityMonos(monos, allocated_length);
+                monos = (Mono*) realloc(monos, allocated_length *sizeof(Mono));
+                assert(monos != NULL);
             }
             monos[mono_count++] = mono;
             
