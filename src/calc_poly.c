@@ -236,8 +236,9 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
     
     if (!isdigit(**string)) {
         *parse_error = true;
-        printf("ParseCoeff1");
-        assert(false);
+        PrintParseError();
+        
+        return value;
     }
     
     while (isdigit(**string)) {
@@ -245,8 +246,7 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
         
         if (((value * 10) / 10) != value) {
             *parse_error = true;
-            printf("ParseCoeff2");
-            assert(false);
+            PrintParseError();
             break;
         }
         value *= 10;
@@ -254,8 +254,7 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
         if (!neg) {
             if (((value + digit) - digit) != value) {
                 *parse_error = true;
-                printf("ParseCoeff3");
-                assert(false);
+                PrintParseError();
                 break;
             }
             value += digit;
@@ -263,8 +262,7 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
         else {
             if (((value - digit) + digit) != value) {
                 *parse_error = true;
-                printf("ParseCoeff4");
-                assert(false);
+                PrintParseError();
                 break;
             }
             value -= digit;
@@ -284,8 +282,7 @@ poly_exp_t ParseExp(char **string, bool *parse_error) {
     value = 0;
     if (!isdigit(**string)) {
         *parse_error = true;
-        printf("ParseExp1");
-        assert(false);
+        PrintParseError();;
     }
     
     while (isdigit(**string)) {
@@ -293,16 +290,14 @@ poly_exp_t ParseExp(char **string, bool *parse_error) {
         
         if (((value * 10) / 10) != value) {
             *parse_error = true;
-            printf("ParseExp2");
-            assert(false);
+            PrintParseError();
             break;
         }
         value *= 10;
         
         if (((value + digit) - digit) != value) {
             *parse_error = true;
-            printf("ParseExp3");
-            assert(false);
+            PrintParseError();
             break;
         }
         value += digit;
@@ -317,34 +312,26 @@ poly_exp_t ParseExp(char **string, bool *parse_error) {
 Mono ParseMono(char **string, bool *parse_error) {
     Poly coeff;
     poly_exp_t exp;
-    Mono mono;
     
     coeff = ParsePoly(string, parse_error);
     if (*parse_error == true) {
-        printf("ParseMono1");
-        assert(false);
-        //TODO co ma returnować?
+        return MonoFromPoly(&coeff, 0);
     }
     
     if (**string != ',') {
         *parse_error = true;
-        printf("ParseMono2");
-        assert(false);
-        //TODO co ma returnować?
+        PrintParseError();
+        
+        return MonoFromPoly(&coeff, 0);
     }
     (*string)++;
     IncrementColumn(1);
     
     exp = ParseExp(string, parse_error);
-    if (*parse_error == true) {
-        printf("ParseMono3");
-        assert(false);
-        //TODO co ma returnować?
-    }
+    /* ewentualny error zostanie przechwycony w następnej funkcji, tutaj
+     * tylko zwracałby dokładnie to samo */
     
-    mono = MonoFromPoly(&coeff, exp);
-    
-    return mono;
+    return MonoFromPoly(&coeff, exp);
 }
 
 Poly ParsePoly(char **string, bool *parse_error) {
@@ -355,10 +342,12 @@ Poly ParsePoly(char **string, bool *parse_error) {
     unsigned long allocated_length;
     
     if (!(**string) || *parse_error == true) {
+        if (*parse_error == false) {
+            PrintParseError();
+        }
         *parse_error = true;
-        printf("ParsePoly1");
-        assert(false);
-        //TODO co ma returnować?
+        
+        return PolyZero();
     }
     
     if (**string == '(') {
@@ -372,9 +361,8 @@ Poly ParsePoly(char **string, bool *parse_error) {
             IncrementColumn(1);
             mono = ParseMono(string, parse_error);
             if (*parse_error == true) {
-                printf("ParsePoly2");
-                assert(false);
-                //TODO usuwaj mono?
+                MonoDestroy(&mono);
+                break;
             }
             
             if (mono_count == allocated_length) {
@@ -386,9 +374,8 @@ Poly ParsePoly(char **string, bool *parse_error) {
             
             if (**string != ')') {
                 *parse_error = true;
-                printf("ParsePoly3");
-                assert(false);
-                //TODO co ma returnować?
+                PrintParseError();
+                break;
             }
             (*string)++;
             IncrementColumn(1);
@@ -398,19 +385,21 @@ Poly ParsePoly(char **string, bool *parse_error) {
                 IncrementColumn(1);
                 
                 if (!(**string) || **string != '(') {
+                    if (*parse_error == false) {
+                        PrintParseError();
+                    }
                     *parse_error = true;
-                    printf("ParsePoly4");
-                    assert(false);
-                    //TODO co ma returnować?
+                    break;
                 }
             }
         }
         p = PolyAddMonos(mono_count, monos);
-
+        
         free(monos);
     }
     else /* string to pewna liczba */ {
         coeff_val = ParseCoeff(string, parse_error);
+        /* ewentualny błąd parsowania został już wypisany */
         p = PolyFromCoeff(coeff_val);
     }
     
@@ -531,7 +520,7 @@ void PrintWrongVariableError() {
 }
 
 void PrintParseError() {
-    fprintf(stderr, "ERROR %d %d\n", IncrementRow(0), IncrementColumn(0));
+    fprintf(stderr, "ERROR %d %d\n", IncrementRow(0), IncrementColumn(1));
     
     return;
 }
@@ -870,9 +859,13 @@ int main() {
             }
         }
         else if (!found_EOF) {
-            poly = ParsePoly(&line, &found_EOF);
-            stack = Push(stack, poly);
-            printf(parse_error? "(true)\n" : "(false)\n");
+            poly = ParsePoly(&line, &parse_error);
+            if (parse_error) {
+                PolyDestroy(&poly);
+            }
+            else {
+                stack = Push(stack, poly);
+            }
         }
         else /* found_EOF */ {
             found_EOF = true;
