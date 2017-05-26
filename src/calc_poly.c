@@ -44,6 +44,12 @@ Stack* Push(Stack *stack, Poly poly);
 
 Stack* Pop(Stack *stack);
 
+void ClearStack(Stack *stack);
+
+int IncrementColumn(int increment);
+
+int IncrementRow(int increment);
+
 char* LineToString(bool *found_EOF);
 
 poly_coeff_t ParseCoeff(char **string, bool *parse_error);
@@ -225,7 +231,7 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
     if (**string == '-') {
         neg = true;
         (*string)++;
-        ;
+        IncrementColumn(1);
     }
     
     if (!isdigit(**string)) {
@@ -397,8 +403,6 @@ Poly ParsePoly(char **string, bool *parse_error) {
                     assert(false);
                     //TODO co ma returnować?
                 }
-                
-                printf("%s\n", *string);
             }
         }
         p = PolyAddMonos(mono_count, monos);
@@ -424,6 +428,7 @@ unsigned ParseDegByVar(char *var, bool *parse_error) {
     while (*var) {
         if (!isdigit(*var)) {
             *parse_error = true;
+            
             break;
         }
         
@@ -440,6 +445,8 @@ unsigned ParseDegByVar(char *var, bool *parse_error) {
             break;
         }
         value += digit;
+        
+        var++;
     }
     
     return value;
@@ -752,10 +759,14 @@ void PrintCommand(Stack *stack) {
 }
 
 Stack* PopCommand(Stack *stack) {
+    Poly top;
+    
     if (IsEmptyStack(stack)) {
         PrintStackUnderflowError();
         return stack;
     }
+    top = Peek(stack);
+    PolyDestroy(&top);
     
     return Pop(stack);
 }
@@ -852,7 +863,7 @@ int main() {
                 PrintCommand(stack);
             }
             else if (strncmp(line, "POP", POP_LENGTH) == 0) {
-                PopCommand(stack);
+                stack = PopCommand(stack);
             }
             else {
                 PrintWrongCommandError();
@@ -860,22 +871,14 @@ int main() {
         }
         else if (!found_EOF) {
             poly = ParsePoly(&line, &found_EOF);
-            PolyToString(&poly);
-            PolyDestroy(&poly);
-            printf(parse_error? " (true)\n" : " (false)\n");
-            
-            if (parse_error) {
-                printf("line: %s\n", line);
-                
-                
-            }
+            stack = Push(stack, poly);
+            printf(parse_error? "(true)\n" : "(false)\n");
         }
         else /* found_EOF */ {
             found_EOF = true;
         }
         
         free(first);
-        parse_error = false;
     }
     
     ClearStack(stack);
