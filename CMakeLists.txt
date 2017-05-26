@@ -25,11 +25,11 @@ set(SOURCE_FILES
     src/poly.h
     src/list.h
     src/list.c
-    src/test_poly.c
+    src/calc_poly.c
 )
 
 # Wskazujemy plik wykonywalny.
-add_executable(test_poly ${SOURCE_FILES})
+add_executable(calc_poly ${SOURCE_FILES})
 
 # Dodajemy obsługę Doxygena: sprawdzamy, czy jest zainstalowany i jeśli tak to:
 find_package(Doxygen)
