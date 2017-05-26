@@ -7,6 +7,7 @@
 #include <string.h>
 #include <stdio.h>
 #include <ctype.h>
+#include <limits.h>
 #include "poly.h"
 
 #define ASCII_A 65
@@ -236,7 +237,9 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
     
     if (!isdigit(**string)) {
         *parse_error = true;
+        //printf("1");
         PrintParseError();
+        
         
         return value;
     }
@@ -246,22 +249,27 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
         
         if (((value * 10) / 10) != value) {
             *parse_error = true;
+            //printf("2");
             PrintParseError();
+            
             break;
         }
         value *= 10;
         
         if (!neg) {
-            if (((value + digit) - digit) != value) {
+            if (value > LONG_MAX - digit) {
                 *parse_error = true;
+                //printf("3");
                 PrintParseError();
+                
                 break;
             }
             value += digit;
         }
         else {
-            if (((value - digit) + digit) != value) {
+            if (value < LONG_MIN + digit) {
                 *parse_error = true;
+                //printf("4");
                 PrintParseError();
                 break;
             }
@@ -281,21 +289,24 @@ poly_exp_t ParseExp(char **string, bool *parse_error) {
     
     value = 0;
     if (!isdigit(**string)) {
+        //printf("5");
         *parse_error = true;
-        PrintParseError();;
+        PrintParseError();
     }
     
     while (isdigit(**string)) {
         digit = ((int) **string) - ASCII_ZERO;
         
         if (((value * 10) / 10) != value) {
+            //printf("6");
             *parse_error = true;
             PrintParseError();
             break;
         }
         value *= 10;
         
-        if (((value + digit) - digit) != value) {
+        if (value > INT_MAX - digit) {
+            //printf("7");
             *parse_error = true;
             PrintParseError();
             break;
@@ -320,6 +331,7 @@ Mono ParseMono(char **string, bool *parse_error) {
     
     if (**string != ',') {
         *parse_error = true;
+        //printf("8");
         PrintParseError();
         
         return MonoFromPoly(&coeff, 0);
@@ -343,6 +355,7 @@ Poly ParsePoly(char **string, bool *parse_error) {
     
     if (!(**string) || *parse_error == true) {
         if (*parse_error == false) {
+            //printf("9");
             PrintParseError();
         }
         *parse_error = true;
@@ -374,18 +387,30 @@ Poly ParsePoly(char **string, bool *parse_error) {
             
             if (**string != ')') {
                 *parse_error = true;
+                //printf("10");
                 PrintParseError();
                 break;
             }
             (*string)++;
             IncrementColumn(1);
             
-            if (**string && **string == '+') {
+            if (**string) {
+                if (**string == ',') {
+                    break;
+                }
+                if (**string != '+') {
+                    *parse_error = true;
+                    //printf("11");
+                    PrintParseError();
+                    break;
+                }
+                
                 (*string)++;
                 IncrementColumn(1);
                 
                 if (!(**string) || **string != '(') {
                     if (*parse_error == false) {
+                        //printf("12");
                         PrintParseError();
                     }
                     *parse_error = true;
@@ -417,7 +442,6 @@ unsigned ParseDegByVar(char *var, bool *parse_error) {
     while (*var) {
         if (!isdigit(*var)) {
             *parse_error = true;
-            
             break;
         }
         
@@ -429,7 +453,7 @@ unsigned ParseDegByVar(char *var, bool *parse_error) {
         }
         value *= 10;
         
-        if (((value + digit) - digit) != value) {
+        if (value > UINT_MAX - digit) {
             *parse_error = true;
             break;
         }
@@ -475,14 +499,14 @@ poly_coeff_t ParseAtVar(char *var, bool *parse_error) {
         value *= 10;
         
         if (!neg) {
-            if (((value + digit) - digit) != value) {
+            if (value > LONG_MAX - digit) {
                 *parse_error = true;
                 break;
             }
             value += digit;
         }
         else {
-            if (((value - digit) + digit) != value) {
+            if (value < LONG_MIN + digit) {
                 *parse_error = true;
                 break;
             }
@@ -617,7 +641,7 @@ Stack* MulCommand(Stack *stack) {
     second = Peek(stack);
     stack = Pop(stack);
     
-    mul = PolyAdd(&first, &second);
+    mul = PolyMul(&first, &second);
     PolyDestroy(&first);
     PolyDestroy(&second);
     
@@ -860,6 +884,11 @@ int main() {
         }
         else if (!found_EOF) {
             poly = ParsePoly(&line, &parse_error);
+            if (*line != '\0' && !parse_error) {
+                parse_error = true;
+                PrintParseError();
+            }
+            
             if (parse_error) {
                 PolyDestroy(&poly);
             }
