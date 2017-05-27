@@ -1,0 +1,10 @@
+0
+IS_COEFF
+-5
+IS_COEFF
+((1,2),5)
+IS_COEFF
+(-10,0)+(-8,5)
+(8,5)
+ADD
+IS_COEFF

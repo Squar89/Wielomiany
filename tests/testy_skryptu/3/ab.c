@@ -1,0 +1,5 @@
+2
+PRINT
+POP
+PRINT
+FILE z z
