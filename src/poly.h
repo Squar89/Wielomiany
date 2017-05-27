@@ -207,8 +207,15 @@ bool PolyIsEq(const Poly *p, const Poly *q);
  */
 Poly PolyAt(const Poly *p, poly_coeff_t x);
 
+/**
+ * Wypisuje podany wielomian.
+ * @param[in] p : wielomian, który chcemy wypisać
+ */
 void PolyToString(Poly *p);
-  
+
+/**
+ * Wypisuje podany jednomian.
+ * @param[in] m : jednomian, który chcemy wypisać
 void MonoToString(Mono *m);
 
 #endif /* __POLY_H__ */

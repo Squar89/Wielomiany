@@ -193,33 +193,115 @@ void PrintWrongVariableError();
 void PrintParseError();
 
 /**
- * 
+ * Dodaje na stos zerowy wielomian.
+ * @param[in] stack : stan stosu przed dodaniem zerowego wielomianu
+ * @return stos po dodaniu zerowego wielomianu
+ */
 Stack* ZeroCommand(Stack *stack);
 
+/**
+ * Sprawdza czy wielomian na szczycie stosu jest współczynnikiem i wypisuje
+ * wynik. W przypadku pustego stosu wypisuje komunikat o błędzie.
+ * @param[in] stack : stos dla którego chcemy sprawdzić najwyższy element
+ */
 void IsCoeffCommand(Stack *stack);
 
+/**
+ * Sprawdza czy wielomian na szczycie stosu jest wielomianem zerowym i 
+ * wypisuje wynik. W przypadku pustego stosu wypisuje komunikat o błędzie.
+ * @param[in] stack : stos dla którego chcemy sprawdzić najwyższy element
+ */
 void IsZeroCommand(Stack *stack);
 
+/**
+ * Klonuje wierzchołek stosu i dodaje go do tego samego stosu. W przypadku 
+ * pustego stosu wypisuje komunikat o błędzie.
+ * @param[in] stack : stos którego wierzchołek chcemy sklonować
+ * @return stos po dodaniu duplikatu wierzchołka na szczyt
+ */
 Stack* PolyCloneCommand(Stack *stack);
 
+/**
+ * Dodaje dwa najwyżej położone wielomiany ze stosu, usuwa je i dodaje wynik
+ * dodawania. W przypadku niewystarczającej liczby wielomianów na stosie
+ * wypisuje komunikat o błędzie.
+ * @param[in] stack : stos z którego wielomiany chcemy dodać
+ * @return stos po wykonaniu operacji na wielomianach i dodaniu wyniku
+ */
 Stack* AddCommand(Stack *stack);
 
+/**
+ * Mnoży dwa najwyżej położone wielomiany ze stosu, usuwa je i dodaje wynik 
+ * mnożenia. W przypadku niewystarczającej liczby wielomianów na stosie 
+ * wypisuje komunikat o błędzie.
+ * @param[in] stack : stos z którego wielomiany chcemy pomożyć
+ * @return stos po wykonaniu operacji na wielomianach i dodaniu ich wyniku
+ */
 Stack* MulCommand(Stack *stack);
 
+/**
+ * Neguje najwyżej położony wielomian ze stosu. W przypadku pustego stosu
+ * wypisuje komunikat o błędzie.
+ * @param[in] stack : stos którego wierzchołek chcemy zanegować
+ * @return stos po wykonaniu operacji negacji na jego wierzchołku
+ */
 Stack* NegCommand(Stack *stack);
 
+/**
+ * Odejmuje dwa najwyżej położone wielomiany ze stosu, usuwa je i dodaje
+ * wynik odejmowania. W przypadku niewystarczającej liczby wielomianów na
+ * stosie wypisuje komunikat o błędzie.
+ * @param[in] stack : stos którego wielomiany chcemy odjąć
+ * @return stos po wykonaniu operacji na wielomianach i dodaniu ich wyniku
+ */
 Stack* SubCommand(Stack *stack);
 
-Stack* IsEqCommand(Stack *stack);
+/**
+ * Sprawdza czy dwa najwyżej położone wielomiany ze stosą są sobie równe
+ * i wypisuje wynik. W przypadku niewystarczającej liczby wielomianów na 
+ * stosie wypisuje komunikat o błędzie.
+ * @param[in] stack : stos którego wielomiany chcemy porównać
+ */
+void IsEqCommand(Stack *stack);
 
+/**
+ * Oblicza i wypisuje stopień wielomianu z wierzchołka stosu. W przypadku
+ * pustego stosu wypisuje komunikat o błędzie.
+ * @param[in] stack : stos dla którego wierzchołka chcemy wyliczyć stopień
+ */
 void DegCommand(Stack *stack);
 
+/**
+ * Oblicza i wypisuje stopień wielomianu z wierzchołka stosu ze względu na 
+ * daną zmienną. W przypadku pustego stosu wypisuje komunikat o błędzie.
+ * @param[in] stack : stos dla którego wierzchołka chcemy wyliczyć stopień
+ * @param[in] var : zmienna dla której chcemy obliczyć stopień wielomianu
+ */
 void DegByCommand(Stack *stack, unsigned var);
 
+/**
+ * Wylicza wartość wielomianu z wierzchołka stosu w podanym punkcie, usuwa
+ * ten wielomian ze stosu i wynik działania wrzuca na stos. W przypadku
+ * pustego stosu wypisuje komunikat o błędzie.
+ * @param[in] stack : stos dla którego wierzchołka chcemy wyliczyć wartość
+ *                    w punkcie
+ * @param[in] val : punkt w którym chcemy obliczyć wartość wielomianu
+ * @return stos po dodaniu wielomianu z wykonanej operacji.
+ */
 Stack* AtCommand(Stack *stack, poly_coeff_t val);
 
+/**
+ * Wypisuje wielomian z wierzchołka stosu. W przypadku pustego stosu wypisuje 
+ * komunikat o błędzie.
+ * @param[in] stack : stos którego wierzchołek chcemy wypisać.
+ */
 void PrintCommand(Stack *stack);
 
+/**
+ * Usuwa wielomian z wierzchołka stosu. W przypadku pustego stosu wypisuje 
+ * komunikat o błędzie.
+ * @param[in] stack : stos którego wierzchołek chcemy usunąć.
+ */
 Stack* PopCommand(Stack *stack);
 
 int main() {
@@ -270,7 +352,7 @@ int main() {
                 stack = SubCommand(stack);
             }
             else if (strncmp(line, "IS_EQ", IS_EQ_LENGTH) == 0) {
-                stack = IsEqCommand(stack);
+                IsEqCommand(stack);
             }
             else if (strncmp(line, "DEG", DEG_LENGTH) == 0) {
                 DegCommand(stack);
@@ -482,9 +564,7 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
     
     if (!isdigit(**string)) {
         *parse_error = true;
-        //printf("1");
         PrintParseError();
-        
         
         return value;
     }
@@ -494,9 +574,7 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
         
         if (((value * 10) / 10) != value) {
             *parse_error = true;
-            //printf("2");
             PrintParseError();
-            
             break;
         }
         value *= 10;
@@ -504,9 +582,7 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
         if (!neg) {
             if (value > LONG_MAX - digit) {
                 *parse_error = true;
-                //printf("3");
                 PrintParseError();
-                
                 break;
             }
             value += digit;
@@ -514,7 +590,6 @@ poly_coeff_t ParseCoeff(char **string, bool *parse_error) {
         else {
             if (value < LONG_MIN + digit) {
                 *parse_error = true;
-                //printf("4");
                 PrintParseError();
                 break;
             }
@@ -534,7 +609,6 @@ poly_exp_t ParseExp(char **string, bool *parse_error) {
     
     value = 0;
     if (!isdigit(**string)) {
-        //printf("5");
         *parse_error = true;
         PrintParseError();
     }
@@ -543,7 +617,6 @@ poly_exp_t ParseExp(char **string, bool *parse_error) {
         digit = ((int) **string) - ASCII_ZERO;
         
         if (((value * 10) / 10) != value) {
-            //printf("6");
             *parse_error = true;
             PrintParseError();
             break;
@@ -551,7 +624,6 @@ poly_exp_t ParseExp(char **string, bool *parse_error) {
         value *= 10;
         
         if (value > INT_MAX - digit) {
-            //printf("7");
             *parse_error = true;
             PrintParseError();
             break;
@@ -571,12 +643,12 @@ Mono ParseMono(char **string, bool *parse_error) {
     
     coeff = ParsePoly(string, parse_error);
     if (*parse_error == true) {
+        
         return MonoFromPoly(&coeff, 0);
     }
     
     if (**string != ',') {
         *parse_error = true;
-        //printf("8");
         PrintParseError();
         
         return MonoFromPoly(&coeff, 0);
@@ -600,7 +672,6 @@ Poly ParsePoly(char **string, bool *parse_error) {
     
     if (!(**string) || *parse_error == true) {
         if (*parse_error == false) {
-            //printf("9");
             PrintParseError();
         }
         *parse_error = true;
@@ -632,7 +703,6 @@ Poly ParsePoly(char **string, bool *parse_error) {
             
             if (**string != ')') {
                 *parse_error = true;
-                //printf("10");
                 PrintParseError();
                 break;
             }
@@ -645,7 +715,6 @@ Poly ParsePoly(char **string, bool *parse_error) {
                 }
                 if (**string != '+') {
                     *parse_error = true;
-                    //printf("11");
                     PrintParseError();
                     break;
                 }
@@ -655,7 +724,6 @@ Poly ParsePoly(char **string, bool *parse_error) {
                 
                 if (!(**string) || **string != '(') {
                     if (*parse_error == false) {
-                        //printf("12");
                         PrintParseError();
                     }
                     *parse_error = true;
@@ -675,6 +743,7 @@ Poly ParsePoly(char **string, bool *parse_error) {
     
     return p;
 }
+
 unsigned ParseDegByVar(char *var, bool *parse_error) {
     unsigned value;
     int digit;
@@ -909,7 +978,7 @@ Stack* NegCommand(Stack *stack) {
     return Push(stack, neg);
 }
 
-Stack* SubCommand(Stack *stack) {
+void SubCommand(Stack *stack) {
     Poly first, second, neg_second, sub;
     
     if (IsEmptyStack(stack)) {
