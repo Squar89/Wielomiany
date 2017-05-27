@@ -10,7 +10,7 @@
 #include <limits.h>
 #include "poly.h"
 
-#define ASCII_A 65
+#define ASCII_A 65 /* wartości ascii dla danych liter alfabetu */
 #define ASCII_Z 90
 #define ASCII_a 97
 #define ASCII_z 122
@@ -978,7 +978,7 @@ Stack* NegCommand(Stack *stack) {
     return Push(stack, neg);
 }
 
-void SubCommand(Stack *stack) {
+Stack* SubCommand(Stack *stack) {
     Poly first, second, neg_second, sub;
     
     if (IsEmptyStack(stack)) {
@@ -1004,26 +1004,26 @@ void SubCommand(Stack *stack) {
     return Push(stack, sub);
 }
 
-Stack* IsEqCommand(Stack *stack) {
+void IsEqCommand(Stack *stack) {
     Poly first, second;
     
     if (IsEmptyStack(stack)) {
         PrintStackUnderflowError();
-        return stack;
+        return;
     }
     first = Peek(stack);
     stack = Pop(stack);
     
     if (IsEmptyStack(stack)) {
         PrintStackUnderflowError();
-        return Push(stack, first);
+        return;
     }
     second = Peek(stack);
     stack = Push(stack, first);
     
     printf(PolyIsEq(&first, &second) ? "1\n" : "0\n");
     
-    return stack;
+    return;
 }
 
 void DegCommand(Stack *stack) {

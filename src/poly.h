@@ -216,6 +216,7 @@ void PolyToString(Poly *p);
 /**
  * Wypisuje podany jednomian.
  * @param[in] m : jednomian, który chcemy wypisać
+ */
 void MonoToString(Mono *m);
 
 #endif /* __POLY_H__ */

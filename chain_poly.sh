@@ -23,6 +23,9 @@ if [ $# -eq 2 ] && [ -x "$1" ] && [ -d "$2" ]; then
     done
     
     ./"$prog" < test.in
+    
+    rm output
+    rm test.in
     exit 0
     
 elif [ ! $# -eq 2 ]; then
