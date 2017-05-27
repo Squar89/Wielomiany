@@ -261,8 +261,9 @@ Stack* SubCommand(Stack *stack);
  * i wypisuje wynik. W przypadku niewystarczającej liczby wielomianów na 
  * stosie wypisuje komunikat o błędzie.
  * @param[in] stack : stos którego wielomiany chcemy porównać
+ * @return stan stosu po wykonaniu porównania
  */
-void IsEqCommand(Stack *stack);
+Stack* IsEqCommand(Stack *stack);
 
 /**
  * Oblicza i wypisuje stopień wielomianu z wierzchołka stosu. W przypadku
@@ -352,7 +353,7 @@ int main() {
                 stack = SubCommand(stack);
             }
             else if (strncmp(line, "IS_EQ", IS_EQ_LENGTH) == 0) {
-                IsEqCommand(stack);
+                stack = IsEqCommand(stack);
             }
             else if (strncmp(line, "DEG", DEG_LENGTH) == 0) {
                 DegCommand(stack);
@@ -616,7 +617,8 @@ poly_exp_t ParseExp(char **string, bool *parse_error) {
     while (isdigit(**string)) {
         digit = ((int) **string) - ASCII_ZERO;
         
-        if (((value * 10) / 10) != value) {
+        
+        if (value > INT_MAX / 10) {
             *parse_error = true;
             PrintParseError();
             break;
@@ -1004,26 +1006,26 @@ Stack* SubCommand(Stack *stack) {
     return Push(stack, sub);
 }
 
-void IsEqCommand(Stack *stack) {
+Stack* IsEqCommand(Stack *stack) {
     Poly first, second;
     
     if (IsEmptyStack(stack)) {
         PrintStackUnderflowError();
-        return;
+        return stack;
     }
     first = Peek(stack);
     stack = Pop(stack);
     
     if (IsEmptyStack(stack)) {
         PrintStackUnderflowError();
-        return;
+        return Push(stack, first);
     }
     second = Peek(stack);
     stack = Push(stack, first);
     
     printf(PolyIsEq(&first, &second) ? "1\n" : "0\n");
     
-    return;
+    return stack;
 }
 
 void DegCommand(Stack *stack) {
