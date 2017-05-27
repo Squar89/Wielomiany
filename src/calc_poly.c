@@ -30,51 +30,170 @@
 #define PRINT_LENGTH 6 //5 + 1
 #define POP_LENGTH 4 //3 + 1
 
+/**
+ * Struktura przechowująca stos.
+ * Jest zbudowana z najwyższego elementu oraz
+ * wskaźnika na stos elementu poniżej
+ */
 typedef struct Stack {
-    Poly top_element;
-    struct Stack *previous;
+    Poly top_element; ///< element na szczycie stosu
+    struct Stack *previous;///< wskaźnik na stos elementu poniżej
 } Stack;
 
+/**
+ * Sprawdza czy stos jest pusty.
+ * @param[in] stack : stos dla którego chcemy sprawdzić czy jest pusty
+ * @return Czy stos jest pusty?
+ */
 bool IsEmptyStack(Stack *stack);
 
+/**
+ * Funkcja przygotowująca stos.
+ * @return wskaźnik na przygotowany stos
+ */
 Stack* SetupStack();
 
+/**
+ * Zwraca najwyższy element stosu.
+ * @param[in] stack : stos którego najwyższy element chcemy zobaczyć
+ * @return wielomian położony najwyżej na stosie
+ */
 Poly Peek(Stack *stack);
 
+/**
+ * Funkcja dokładająca podany wielomian na szczyt stosu.
+ * @param[in] stack : stos do którego chcemy dołożyć wielomian
+ * @param[in] poly : wielomian który chcemy dołożyć na stos
+ * @return zaaktualizowany stos z danym wielomianem na szczycie
+ */
 Stack* Push(Stack *stack, Poly poly);
 
+/**
+ * Usuwa najwyższy element stosu.
+ * @param[in] stack : stos dla którego chcemy usunąc najwyższy element
+ * @return zaaktualizowany stos z usuniętym najwyższym elementem
+ */
 Stack* Pop(Stack *stack);
 
+/**
+ * Usuwa stos z pamięci razem z jego zawartością
+ * @param[in] stack : stos który chcemy całkowicie usunąć
+ */
 void ClearStack(Stack *stack);
 
+/**
+ * Zmienia wartość zmiennej statycznej column.
+ * Jeśli podana liczba jest <0, to zeruje wartość column.
+ * W p.p. zwiększa wartość column o daną liczbę;
+ * @param[in] increment : liczba o którą chcemy zwiększyć wartość column
+ * @return wartość column
+ */
 int IncrementColumn(int increment);
 
+/**
+ * Zmienia wartość zmiennej statycznej row.
+ * Jeśli podana liczba jest <0, to zeruje wartość row.
+ * W p.p. zwiększa wartość row o daną liczbę;
+ * @param[in] increment : liczba o którą chcemy zwiększyć wartość row
+ * @return wartość row
+ */
 int IncrementRow(int increment);
 
+/**
+ * Wczytuje dane wejściowe aż do napotkania nowej linii/EOFa.
+ * @param[in] found_EOF : wartość logiczna ustawiana na true w przypadku
+ *                        napotkania EOFa
+ * @return tablica charów reprezentująca dane wejściowe
+ */
 char* LineToString(bool *found_EOF);
 
+/**
+ * Przetwarza podany string wczytując liczbę reprezentującą współczynnik
+ * wielomianu. W przypadku błędnych danych wejściowych zmienia wartość
+ * pod adresem parse_error na true i wypisuje komunikat o błędzie.
+ * @param[in] string : podana tablica charów do przetworzenia
+ * @param[in] parse_error : wskaźnik na wartość logiczną - czy wystąpił błąd?
+ * @return przetworzona liczba typu poly_coeff_t
+ */
 poly_coeff_t ParseCoeff(char **string, bool *parse_error);
 
+/**
+ * Przetwarza podany string wczytując liczbę reprezentującą wykładnik
+ * wielomianu. W przypadku błędnych danych wejściowych zmienia wartość pod
+ * adresem parse_error na true i wypisuje komunikat o błędzie.
+ * @param[in] string : podana tablica charów do przetworzenia
+ * @param[in] parse_error : wskaźnik na wartość logiczną - czy wystąpił błąd?
+ * @return przetworzona liczba typu poly_exp_t
+ */
 poly_exp_t ParseExp(char **string, bool *parse_error);
 
+/**
+ * Przetwarza podany string wczytując jednomian. W przypadku błędnych
+ * danych wejściowych zmienia wartość pod adresem parse_error na true
+ * i wypisuje komunikat o błędzie.
+ * @param[in] string : podana tablica charów do przetworzenia
+ * @param[in] parse_error : wskaźnik na wartość logiczną - czy wystąpił błąd?
+ * @return przetworzony jednomian
+ */
 Mono ParseMono(char **string, bool *parse_error);
 
+/**
+ * Przetwarza podany string wczytując wielomian. W przypadku błędnych danych
+ * wejściowych zmienia wartość pod adresem parse_error na true i wypisuje
+ * komunikat o błędzie.
+ * @param[in] string : podana tablica charów do przetworzenia
+ * @param[in] parse_error : wskaźnik na wartość logiczną - czy wystąpił błąd?
+ * @return przetworzony wielomian
+ */
 Poly ParsePoly(char **string, bool *parse_error);
 
+/**
+ * Przetwarza podany string wczytując liczbę reprezentującą parametr do
+ * funkcji DegBy. W przypadku błędnych danych wejściowych zmienia wartość pod
+ * adresem parse_error na true.
+ * @param[in] var : podana tablica charów do przetworzenia
+ * @param[in] parse_error : wskaźnik na wartość logiczną - czy wystąpił błąd?
+ * @return przetworzona liczba typu unsigned
+ */
 unsigned ParseDegByVar(char *var, bool *parse_error);
 
+/**
+ * Przetwarza podany string wczytując liczbę reprezentującą parametr do
+ * funkcji At. W przypadku błędnych danych wejściowych zmienia wartośc pod
+ * adresem parse_error na true.
+ * @param[in] var : podana tablica charów do przetworzenia
+ * @param[in] parse_error : wskaźnik na wartość logiczną - czy wystąpił błąd?
+ * @return przetworzona liczba typu poly_coeff_t
+ */
 poly_coeff_t ParseAtVar(char *var, bool *parse_error);
 
+/**
+ * Wypisuje komunikat o błędzie zbyt małej liczby wielomianów na stosie.
+ */
 void PrintStackUnderflowError();
 
+/**
+ * Wypisuje komunikat o błędzie złej komendy.
+ */
 void PrintWrongCommandError();
 
+/**
+ * Wypisuje komunikat o błędzie złej wartości przy komendzie AT.
+ */
 void PrintWrongValueError();
 
+/**
+ * Wypisuje komunikat o błędzie złej wartości przy komendzie DEG_BY.
+ */
 void PrintWrongVariableError();
 
+/**
+ * Wypisuje komunikat o błędzie przy próbie wczytania wielomianu.
+ */
 void PrintParseError();
 
+/**
+ * 
 Stack* ZeroCommand(Stack *stack);
 
 void IsCoeffCommand(Stack *stack);
@@ -102,6 +221,132 @@ Stack* AtCommand(Stack *stack, poly_coeff_t val);
 void PrintCommand(Stack *stack);
 
 Stack* PopCommand(Stack *stack);
+
+int main() {
+    bool found_EOF, parse_error;
+    int first_char_code;
+    char *line, *first_char;
+    poly_coeff_t at_val;
+    unsigned deg_var;
+    Poly poly;
+    Stack *stack;
+    
+    found_EOF = false;
+    stack = SetupStack();
+    
+    while (!found_EOF) {
+        IncrementColumn(-1);
+        IncrementRow(1);
+        line = LineToString(&found_EOF);
+        first_char = line;
+        first_char_code = (int) line[0];
+        parse_error = false;
+        if (!found_EOF && 
+            ((ASCII_A <= first_char_code && first_char_code <= ASCII_Z)
+            || (ASCII_a <= first_char_code && first_char_code <= ASCII_z))) {
+            
+            if (strncmp(line, "ZERO", ZERO_LENGTH) == 0) {
+                stack = ZeroCommand(stack);
+            }
+            else if (strncmp(line, "IS_COEFF", IS_COEFF_LENGTH) == 0) {
+                IsCoeffCommand(stack);
+            }
+            else if (strncmp(line, "IS_ZERO", IS_ZERO_LENGTH) == 0) {
+                IsZeroCommand(stack);
+            }
+            else if (strncmp(line, "CLONE", CLONE_LENGTH) == 0) {
+                stack = PolyCloneCommand(stack);
+            }
+            else if (strncmp(line, "ADD", ADD_LENGTH) == 0) {
+                stack = AddCommand(stack);
+            }
+            else if (strncmp(line, "MUL", MUL_LENGTH) == 0) {
+                stack = MulCommand(stack);
+            }
+            else if (strncmp(line, "NEG", NEG_LENGTH) == 0) {
+                stack = NegCommand(stack);
+            }
+            else if (strncmp(line, "SUB", SUB_LENGTH) == 0) {
+                stack = SubCommand(stack);
+            }
+            else if (strncmp(line, "IS_EQ", IS_EQ_LENGTH) == 0) {
+                stack = IsEqCommand(stack);
+            }
+            else if (strncmp(line, "DEG", DEG_LENGTH) == 0) {
+                DegCommand(stack);
+            }
+            else if (strncmp(line, "DEG_BY", DEG_BY_LENGTH - 1) == 0) {
+                if (line[DEG_BY_LENGTH - 1] == ' '
+                    || line[DEG_BY_LENGTH - 1] == '\0') {
+                    
+                    deg_var = ParseDegByVar(
+                        &line[DEG_BY_LENGTH], &parse_error);
+                    
+                    if (parse_error) {
+                        PrintWrongVariableError();
+                    }
+                    else {
+                        DegByCommand(stack, deg_var);
+                    }
+                }
+                else {
+                    PrintWrongCommandError();
+                }
+            }
+            else if (strncmp(line, "AT", AT_LENGTH - 1) == 0) {
+                if (line[AT_LENGTH - 1] == ' '
+                    || line[AT_LENGTH - 1] == '\0') {
+                    
+                    at_val = ParseAtVar(&line[AT_LENGTH], &parse_error);
+                    
+                    if (parse_error) {
+                        PrintWrongValueError();
+                    }
+                    else {
+                        stack = AtCommand(stack, at_val);
+                    }
+                }
+                else {
+                    PrintWrongCommandError();
+                }
+            }
+            else if (strncmp(line, "PRINT", PRINT_LENGTH) == 0) {
+                PrintCommand(stack);
+            }
+            else if (strncmp(line, "POP", POP_LENGTH) == 0) {
+                stack = PopCommand(stack);
+            }
+            else {
+                PrintWrongCommandError();
+            }
+        }
+        else if (!found_EOF) {
+            poly = ParsePoly(&line, &parse_error);
+            if (*line != '\0' && !parse_error) {
+                parse_error = true;
+                PrintParseError();
+            }
+            
+            if (parse_error) {
+                PolyDestroy(&poly);
+            }
+            else {
+                stack = Push(stack, poly);
+            }
+        }
+        else /* found_EOF */ {
+            found_EOF = true;
+        }
+        
+        /* w czasie wczytywania linii przesuneliśmy wskaźnik line na koniec 
+         * wejścia, dlatego wywołujemy free first_char */
+        free(first_char);
+    }
+    
+    ClearStack(stack);
+    
+    return 0;
+}
 
 bool IsEmptyStack(Stack *stack) {
     return stack->previous == NULL;
@@ -782,128 +1027,4 @@ Stack* PopCommand(Stack *stack) {
     PolyDestroy(&top);
     
     return Pop(stack);
-}
-
-int main() {
-    bool found_EOF, parse_error;
-    int first_char_code;
-    char *line, *first;
-    poly_coeff_t at_val;
-    unsigned deg_var;
-    Poly poly;
-    Stack *stack;
-    
-    found_EOF = false;
-    stack = SetupStack();
-    
-    while (!found_EOF) {
-        IncrementColumn(-1);
-        IncrementRow(1);
-        line = LineToString(&found_EOF);
-        first = line;
-        first_char_code = (int) line[0];
-        parse_error = false;
-        if (!found_EOF && 
-            ((ASCII_A <= first_char_code && first_char_code <= ASCII_Z)
-            || (ASCII_a <= first_char_code && first_char_code <= ASCII_z))) {
-            
-            if (strncmp(line, "ZERO", ZERO_LENGTH) == 0) {
-                stack = ZeroCommand(stack);
-            }
-            else if (strncmp(line, "IS_COEFF", IS_COEFF_LENGTH) == 0) {
-                IsCoeffCommand(stack);
-            }
-            else if (strncmp(line, "IS_ZERO", IS_ZERO_LENGTH) == 0) {
-                IsZeroCommand(stack);
-            }
-            else if (strncmp(line, "CLONE", CLONE_LENGTH) == 0) {
-                stack = PolyCloneCommand(stack);
-            }
-            else if (strncmp(line, "ADD", ADD_LENGTH) == 0) {
-                stack = AddCommand(stack);
-            }
-            else if (strncmp(line, "MUL", MUL_LENGTH) == 0) {
-                stack = MulCommand(stack);
-            }
-            else if (strncmp(line, "NEG", NEG_LENGTH) == 0) {
-                stack = NegCommand(stack);
-            }
-            else if (strncmp(line, "SUB", SUB_LENGTH) == 0) {
-                stack = SubCommand(stack);
-            }
-            else if (strncmp(line, "IS_EQ", IS_EQ_LENGTH) == 0) {
-                stack = IsEqCommand(stack);
-            }
-            else if (strncmp(line, "DEG", DEG_LENGTH) == 0) {
-                DegCommand(stack);
-            }
-            else if (strncmp(line, "DEG_BY", DEG_BY_LENGTH - 1) == 0) {
-                if (line[DEG_BY_LENGTH - 1] == ' '
-                    || line[DEG_BY_LENGTH - 1] == '\0') {
-                    
-                    deg_var = ParseDegByVar(
-                        &line[DEG_BY_LENGTH], &parse_error);
-                    
-                    if (parse_error) {
-                        PrintWrongVariableError();
-                    }
-                    else {
-                        DegByCommand(stack, deg_var);
-                    }
-                }
-                else {
-                    PrintWrongCommandError();
-                }
-            }
-            else if (strncmp(line, "AT", AT_LENGTH - 1) == 0) {
-                if (line[AT_LENGTH - 1] == ' '
-                    || line[AT_LENGTH - 1] == '\0') {
-                    
-                    at_val = ParseAtVar(&line[AT_LENGTH], &parse_error);
-                    
-                    if (parse_error) {
-                        PrintWrongValueError();
-                    }
-                    else {
-                        stack = AtCommand(stack, at_val);
-                    }
-                }
-                else {
-                    PrintWrongCommandError();
-                }
-            }
-            else if (strncmp(line, "PRINT", PRINT_LENGTH) == 0) {
-                PrintCommand(stack);
-            }
-            else if (strncmp(line, "POP", POP_LENGTH) == 0) {
-                stack = PopCommand(stack);
-            }
-            else {
-                PrintWrongCommandError();
-            }
-        }
-        else if (!found_EOF) {
-            poly = ParsePoly(&line, &parse_error);
-            if (*line != '\0' && !parse_error) {
-                parse_error = true;
-                PrintParseError();
-            }
-            
-            if (parse_error) {
-                PolyDestroy(&poly);
-            }
-            else {
-                stack = Push(stack, poly);
-            }
-        }
-        else /* found_EOF */ {
-            found_EOF = true;
-        }
-        
-        free(first);
-    }
-    
-    ClearStack(stack);
-    
-    return 0;
 }
