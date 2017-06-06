@@ -29,6 +29,7 @@
 #define AT_LENGTH 3 //2 + 1
 #define PRINT_LENGTH 6 //5 + 1
 #define POP_LENGTH 4 //3 + 1
+#define COMPOSE_LENGTH 8 //7 + 1
 
 /**
  * Struktura przechowująca stos.
@@ -149,13 +150,13 @@ Poly ParsePoly(char **string, bool *parse_error);
 
 /**
  * Przetwarza podany string wczytując liczbę reprezentującą parametr do
- * funkcji DegBy. W przypadku błędnych danych wejściowych zmienia wartość pod
+ * pewnych komend. W przypadku błędnych danych wejściowych zmienia wartość pod
  * adresem parse_error na true.
  * @param[in] var : podana tablica charów do przetworzenia
  * @param[in] parse_error : wskaźnik na wartość logiczną - czy wystąpił błąd?
  * @return przetworzona liczba typu unsigned
  */
-unsigned ParseDegByVar(char *var, bool *parse_error);
+unsigned ParseUnsigned(char *var, bool *parse_error);
 
 /**
  * Przetwarza podany string wczytując liczbę reprezentującą parametr do
@@ -191,6 +192,11 @@ void PrintWrongVariableError();
  * Wypisuje komunikat o błędzie przy próbie wczytania wielomianu.
  */
 void PrintParseError();
+
+/**
+ * Wypisuje komunikat o błędzie złej wartości przy komendzie COMPOSE.
+ */
+void PrintWrongCountError();
 
 /**
  * Dodaje na stos zerowy wielomian.
@@ -305,12 +311,25 @@ void PrintCommand(Stack *stack);
  */
 Stack* PopCommand(Stack *stack);
 
+/**
+ * Wykonuje funkcję PolyCompose na wielomianie z wierzchołka stosu usuwając
+ * go z niego, a jej wynik dodaje na szczyt stosu. Tablicę do tej funkcji
+ * konstruuje zdejmując podaną liczbę wielomianów z wierzchołka stosu.
+ * W przypadku niewystarczającej ilości wielomianów na stosie wypisuje
+ * komunikat o błędzie.
+ * @param[in] stack : stan stosu przed wykonaniem tej funkcji
+ * @param[in] count : liczba wielomianów z których chcemy skonstruować tablicę
+ *                    do PolyCompose
+ * @return : stan stosu po wykonaniu tej funkcji
+ */
+Stack* ComposeCommand(Stack *stack, unsigned count);
+
 int main() {
     bool found_EOF, parse_error;
     int first_char_code;
     char *line, *first_char;
     poly_coeff_t at_val;
-    unsigned deg_var;
+    unsigned deg_var, count;
     Poly poly;
     Stack *stack;
     
@@ -362,7 +381,7 @@ int main() {
                 if (line[DEG_BY_LENGTH - 1] == ' '
                     || line[DEG_BY_LENGTH - 1] == '\0') {
                     
-                    deg_var = ParseDegByVar(
+                    deg_var = ParseUnsigned(
                         &line[DEG_BY_LENGTH], &parse_error);
                     
                     if (parse_error) {
@@ -398,6 +417,23 @@ int main() {
             }
             else if (strncmp(line, "POP", POP_LENGTH) == 0) {
                 stack = PopCommand(stack);
+            }
+            else if (strncmp(line, "COMPOSE", COMPOSE_LENGTH - 1) == 0) {
+                if (line[COMPOSE_LENGTH - 1] == ' '
+                    || line[COMPOSE_LENGTH - 1] == '\0') {
+
+                    count = ParseUnsigned(&line[COMPOSE_LENGTH], &parse_error);
+                    
+                    if (parse_error) {
+                        PrintWrongCountError();
+                    }
+                    else {
+                        stack = ComposeCommand(stack, count);
+                    }
+                }
+                else {
+                    PrintWrongCommandError();
+                }
             }
             else {
                 PrintWrongCommandError();
@@ -746,7 +782,7 @@ Poly ParsePoly(char **string, bool *parse_error) {
     return p;
 }
 
-unsigned ParseDegByVar(char *var, bool *parse_error) {
+unsigned ParseUnsigned(char *var, bool *parse_error) {
     unsigned value;
     int digit;
     
@@ -861,6 +897,12 @@ void PrintWrongVariableError() {
 
 void PrintParseError() {
     fprintf(stderr, "ERROR %d %d\n", IncrementRow(0), IncrementColumn(1));
+    
+    return;
+}
+
+void PrintWrongCountError() {
+    fprintf(stderr, "ERROR %d WRONG COUNT\n", IncrementRow(0));
     
     return;
 }
@@ -1098,4 +1140,8 @@ Stack* PopCommand(Stack *stack) {
     PolyDestroy(&top);
     
     return Pop(stack);
+}
+
+Stack* ComposeCommand(Stack *stack, unsigned count) {
+    //TODO
 }

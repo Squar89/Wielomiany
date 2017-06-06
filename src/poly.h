@@ -219,4 +219,18 @@ void PolyToString(Poly *p);
  */
 void MonoToString(Mono *m);
 
+/**
+ * W danym wielomianie p pod zmienną x_i tego wielomianu podstawia wielomian
+ * z danej tablicy będący pod indeksem i (x[i]). Zmienne oraz tablicę
+ * wielomianów indeksujemy od zera. Jeśli liczba zmiennych wielomianu p jest
+ * większa od liczby podanych wielomianów, to indeksy tablicy uzupełniamy
+ * wielomianami zerowymi.
+ * @param[in] p : wielomian pod którego zmienne chcemy podstawić wielomiany
+ * @param[in] count : liczba wielomianów do podstawienia czyli liczba elementów
+ *                    w tablicy Poly x[]
+ * @param[in] x : tablica wielomianów które chcemy podstawić za zmienne
+ * @return wielomian po podstawieniu
+ */
+Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]);
+
 #endif /* __POLY_H__ */

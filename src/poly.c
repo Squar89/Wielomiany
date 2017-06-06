@@ -533,7 +533,7 @@ bool PolyIsEq(const Poly *p, const Poly *q) {
 
 /**
  * Podnosi liczbę do danej potęgi.
- * @param[in] value : liczbą którą chcemy potęgować
+ * @param[in] value : liczba którą chcemy potęgować
  * @param[in] exp : potęga do której chcemy podnieść liczbę
  * @return wartość value^exp
  */
@@ -624,4 +624,18 @@ void MonoToString(Mono *m) {
     PolyToString(&(m->p));
     printf(",%d)", m->exp);
     return;
+}
+
+/**
+ * Podnosi podany wielomian do danej potęgi.
+ * @param[in] p : wielomian który chcemy potęgować
+ * @param[in] exp : potęga do której chcemy podnieść wielomian
+ * @return wielomian = (p)^exp
+ */
+Poly PolyToPower(Poly *p, poly_exp_t exp) {
+    //TODO
+}
+
+Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]) {
+    //TODO
 }
