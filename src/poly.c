@@ -633,7 +633,25 @@ void MonoToString(Mono *m) {
  * @return wielomian = (p)^exp
  */
 Poly PolyToPower(Poly *p, poly_exp_t exp) {
-    //TODO
+    Poly result, poly, temp;
+    
+    if (exp == 0) {
+        return PolyFromCoeff(1);
+    }
+    
+    poly = PolyToPower(p, exp / 2);
+    
+    result = PolyMul(&poly, &poly);/* upewnij się że PolyMul nie ma problemów
+                                    z mnożeniem tego samego poly */
+    if (exp % 2 == 1) {
+        temp = PolyMul(&result, p);
+        PolyDestroy(&result);
+        result = temp;
+    }
+    
+    PolyDestroy(&poly);
+    
+    return result;
 }
 
 Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]) {

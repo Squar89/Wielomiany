@@ -1142,6 +1142,7 @@ Stack* PopCommand(Stack *stack) {
     return Pop(stack);
 }
 
+//TODO przetestuj
 Stack* ComposeCommand(Stack *stack, unsigned count) {
     Poly top, *x, result, first;
     unsigned long allocated_length;
