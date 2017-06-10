@@ -1143,5 +1143,55 @@ Stack* PopCommand(Stack *stack) {
 }
 
 Stack* ComposeCommand(Stack *stack, unsigned count) {
-    //TODO
+    Poly top, *x, result, first;
+    unsigned long allocated_length;
+    
+    if (IsEmptyStack(stack)) {
+        PrintStackUnderflowError();
+        return stack;
+    }
+    
+    first = Peek(stack);
+    stack = Pop(stack);
+    
+    x = (Poly*) malloc(sizeof(Poly));
+    assert(x != NULL);
+    allocated_length = 1;
+    
+    for (unsigned indeks = 0; indeks < count; indeks++) {
+        if (IsEmptyStack(stack)) {
+            PrintStackUnderflowError();
+            
+            while (indeks > 0) {
+                indeks--;
+                
+                stack = Push(stack, x[indeks]);
+            }
+            
+            free(x);
+            
+            return stack;
+        }
+        
+        top = Peek(stack);
+        stack = Pop(stack);
+        
+        if (indeks == allocated_length) {
+            allocated_length *= 2;
+            x = (Poly*) realloc(x, allocated_length * sizeof(Poly));
+            assert(x != NULL);
+        }
+        x[indeks] = top;
+    }
+    
+    result = PolyCompose(&first, count, x);
+    stack = Push(stack, result);
+    
+    PolyDestroy(&first);
+    for (unsigned indeks = 0; indeks < count; indeks++) {
+        PolyDestroy(&(x[indeks]));
+    }
+    free(x);
+    
+    return stack;
 }
