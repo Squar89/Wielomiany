@@ -1142,7 +1142,6 @@ Stack* PopCommand(Stack *stack) {
     return Pop(stack);
 }
 
-//TODO przetestuj
 Stack* ComposeCommand(Stack *stack, unsigned count) {
     Poly top, *x, result, first;
     unsigned long allocated_length;
@@ -1164,10 +1163,9 @@ Stack* ComposeCommand(Stack *stack, unsigned count) {
             PrintStackUnderflowError();
             
             while (indeks > 0) {
-                indeks--;
-                
-                stack = Push(stack, x[indeks]);
+                stack = Push(stack, x[--indeks]);
             }
+            stack = Push(stack, first);
             
             free(x);
             

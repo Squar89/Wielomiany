@@ -654,14 +654,13 @@ Poly PolyToPower(const Poly *p, poly_exp_t exp) {
     return result;
 }
 
-//TODO przetestuj
 Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]) {
     Poly result, composed_poly, temp, exp_poly, new_poly;
     Mono *current_mono;
     List *p_list;
     
     if (PolyIsCoeff(p)) {
-        return *p;
+        return PolyFromCoeff(p->constant_value);
     }
     
     result = PolyZero();
