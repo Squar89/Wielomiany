@@ -632,7 +632,7 @@ void MonoToString(Mono *m) {
  * @param[in] exp : potęga do której chcemy podnieść wielomian
  * @return wielomian = (p)^exp
  */
-Poly PolyToPower(Poly *p, poly_exp_t exp) {
+Poly PolyToPower(const Poly *p, poly_exp_t exp) {
     Poly result, poly, temp;
     
     if (exp == 0) {
@@ -654,6 +654,58 @@ Poly PolyToPower(Poly *p, poly_exp_t exp) {
     return result;
 }
 
+//TODO przetestuj
 Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]) {
-    //TODO
+    Poly result, composed_poly, temp, exp_poly, new_poly;
+    Mono *current_mono;
+    List *p_list;
+    
+    if (PolyIsCoeff(p)) {
+        return *p;
+    }
+    
+    result = PolyZero();
+    
+    p_list = p->mono_list;
+    p_list = GetNext(p_list);
+    
+    while (GetElement(p_list) != NULL) {
+        current_mono = (Mono*) GetElement(p_list);
+        
+        if (count == 0 && current_mono->exp == 0) {
+            /* jeśli funkcja PolyCompose przyjmie count = 0, to będziemy w niej
+             * rekurencyjnie wywoływać PolyCompose tylko z count = 0.
+             * PolyCompose gdzie count = 0, nie odwołuje się w żaden sposób
+             * do tablicy x, jest ona nie istotna, dlatego zamiast tworzyć
+             * tablicę z zerowym wielomianem lub wielomianami podaję NULL */
+            composed_poly = PolyCompose(&current_mono->p, 0, NULL);
+            
+            temp = PolyAdd(&result, &composed_poly);
+            
+            PolyDestroy(&result);
+            PolyDestroy(&composed_poly);
+            
+            result = temp;
+        }
+        else if (count != 0) {
+            composed_poly = PolyCompose(&current_mono->p, count - 1, x + 1);
+
+            exp_poly = PolyToPower(&(x[0]), current_mono->exp);
+            
+            new_poly = PolyMul(&composed_poly, &exp_poly);
+            
+            temp = PolyAdd(&result, &new_poly);
+            
+            PolyDestroy(&result);
+            PolyDestroy(&composed_poly);
+            PolyDestroy(&exp_poly);
+            PolyDestroy(&new_poly);
+            
+            result = temp;
+        }
+        
+        p_list = GetNext(p_list);
+    }
+    
+    return result;
 }
