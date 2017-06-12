@@ -85,6 +85,15 @@ void* _test_malloc(size_t size, char* const file, int line);
 void* _test_realloc(void* const ptr, size_t size, char* const file, int line);
 void _test_free(void* const ptr, char* const file, const int line);
 
+/* Przekierowuje assert do mock_assert, żeby móc "przechwycić" asserty */
+#ifdef assert
+#undef assert
+#endif /* assert */
+#define assert(expression) \
+    mock_assert((int)(expression), #expression, __FILE__, __LINE__)
+void mock_assert(const int result, const char* expression, const char *file,
+                 const int line);
+
 /* Przedefiniowuje main, aby umożliwić istnienie funkcji main w
  * unit_tests_poly.c */
 #define main(...) calc_poly_main(__VA_ARGS__)
