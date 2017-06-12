@@ -41,6 +41,15 @@ static int exit_status;
 extern int calc_poly_main();
 
 /**
+ * Struktura stworzona do ułatwienia kontroli pamięci zawiera Poly 
+ * wykorzystywane w testach.
+ */
+typedef struct Tools {
+    Poly PolyZero; ///< Wielomian zerowy
+    Poly PolyCoeff;///< Wielomian stały
+}
+
+/**
  * Atrapa funkcji main.
  */
 int mock_main() {
@@ -196,11 +205,19 @@ static void init_input_stream(const char *str) {
     strcpy(input_stream_buffer, str);
 }
 
+static void test_poly_compose(void **state, char *input,Poly expected_result) {
+    (void)state;
+    //W ogóle potrzebne? Chyba nie będę przetwarzał inputa tylko ręcznie 
+    //wszystko robił
+    
+}
 /**
  * p wielomian zerowy, count równe 0.
  */
 static void test_poly_compose_1(void **state) {
     (void)state;
+    
+    
 }
 
 /**
@@ -243,6 +260,11 @@ static void test_poly_compose_6(void **state) {
  */
 static void test_poly_compose_7(void **state) {
     (void)state;
+}
+
+static void test_compose_command(void **state, char *input,
+                                 Poly expected_result) {
+    
 }
 
 /**
