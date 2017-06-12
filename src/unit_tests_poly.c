@@ -20,6 +20,7 @@
 #include <stdarg.h>
 #include <string.h>
 #include <setjmp.h>
+#include <limits.h>
 #include "cmocka.h"
 #include "poly.h"
 
@@ -28,12 +29,6 @@
  * stworzę i jeśli wszystko będzie działać tak jak należy, to zmieści się w 
  * tym limicie. */
 #define MAX_INPUT_LENGTH 256
-
-/*
- * TODO napisz setup i teardown dla testow
- * TODO napisz kazdy test
- * TODO napisz wykonywanie tych testow
- */
 
 static jmp_buf jmp_at_exit;
 static int exit_status;
@@ -47,9 +42,8 @@ extern int calc_poly_main();
 typedef struct Tools {
     Poly poly_zero; ///< Wielomian zerowy
     Poly poly_coeff_1; ///< Wielomian stały równy 1
-    Poly poly_simple; ///< Wielomian (3,1)
-    Poly x_coeff[]; ///< Tablica z wielomianem stałym równym 2
-    Poly x_simple[]; ///< Tablica z wielomianem (3,1)
+    Poly poly_coeff_2; ///< Wielomian stały równy 2
+    Poly poly_simple; ///< Wielomian (1,1)
 } Tools;
 static Tools tools;
 
@@ -72,10 +66,12 @@ void mock_exit(int status) {
     longjmp(jmp_at_exit, 1);
 }
 
+/*
 //TODO potrzebne?
 int mock_fprintf(FILE* const file, const char *format, ...)
     CMOCKA_PRINTF_ATTRIBUTE(2, 3);
 int mock_printf(const char *format, ...) CMOCKA_PRINTF_ATTRIBUTE(1, 2);
+*/
 
 /**
  * Pomocnicze bufory, do których piszą atrapy funkcji printf i fprintf oraz
@@ -170,6 +166,16 @@ int mock_scanf(const char *format, ...) {
 }
 
 /**
+ * Atrapa funkcji getchar używana do przechwycenia czytania z stdin.
+ */
+int mock_getchar() {
+    if (input_stream_position < input_stream_end)
+        return input_stream_buffer[input_stream_position++];
+    else
+        return EOF;
+}
+
+/**
  * Atrapa funkcji fgetc używana do przechwycenia czytania z stdin.
  */
 int mock_fgetc(FILE * const stream) {
@@ -190,17 +196,14 @@ static int test_group_1_setup(void **state) {
     
     tools.poly_zero = PolyZero();
     tools.poly_coeff_1 = PolyFromCoeff(1);
+    tools.poly_coeff_2 = PolyFromCoeff(2);
     
-    Mono *monos = (Mono*) malloc(sizeof(Mono));
-    monos[0] = MonoFromPoly(tools.poly_coeff_1, 1);
+    Mono monos[1];
+    Poly temp = PolyFromCoeff(1);
+    monos[0] = MonoFromPoly(&temp, 1);
     tools.poly_simple = PolyAddMonos(1, monos);
-    free(monos);
     
-    tools.x_coeff = (Poly*) malloc(sizeof(Poly));
-    tools.x_coeff[0] = PolyFromCoeff(2);
-    
-    tools.x_simple = (Poly*) malloc(sizeof(Poly));
-    tools.x_simple[0] = tools.poly_simple;
+    return 0;
 }
 
 /**
@@ -211,10 +214,10 @@ static int test_group_1_teardown(void **state) {
     
     PolyDestroy(&tools.poly_zero);
     PolyDestroy(&tools.poly_coeff_1);
+    PolyDestroy(&tools.poly_coeff_2);
     PolyDestroy(&tools.poly_simple);
-    PolyDestroy(&tools.x_coeff[0]);
-    free(tools.x_coeff);
-    free(toold.x_simple);
+    
+    return 0;
 }
 
 /**
@@ -268,6 +271,8 @@ static void test_poly_compose_1(void **state) {
     result = PolyCompose(&tools.poly_zero, 0, NULL);
     
     assert_true(PolyIsEq(&result, &expected_result));
+    
+    PolyDestroy(&result);
 }
 
 /**
@@ -279,9 +284,11 @@ static void test_poly_compose_2(void **state) {
     Poly result, expected_result;
     
     expected_result = tools.poly_zero;
-    result = PolyCompose(&tools.poly_zero, 1, tools.x_coeff);
+    result = PolyCompose(&tools.poly_zero, 1, &tools.poly_coeff_2);
     
     assert_true(PolyIsEq(&result, &expected_result));
+    
+    PolyDestroy(&result);
 }
 
 /**
@@ -296,6 +303,8 @@ static void test_poly_compose_3(void **state) {
     result = PolyCompose(&tools.poly_coeff_1, 0, NULL);
     
     assert_true(PolyIsEq(&result, &expected_result));
+    
+    PolyDestroy(&result);
 }
 
 /**
@@ -307,9 +316,11 @@ static void test_poly_compose_4(void **state) {
     Poly result, expected_result;
     
     expected_result = tools.poly_coeff_1;
-    result = PolyCompose(&tools.poly_coeff_1, 1, tools.x_coeff);
+    result = PolyCompose(&tools.poly_coeff_1, 1, &tools.poly_coeff_2);
     
     assert_true(PolyIsEq(&result, &expected_result));
+    
+    PolyDestroy(&result);
 }
 
 /**
@@ -324,6 +335,8 @@ static void test_poly_compose_5(void **state) {
     result = PolyCompose(&tools.poly_simple, 0, NULL);
     
     assert_true(PolyIsEq(&result, &expected_result));
+    
+    PolyDestroy(&result);
 }
 
 /**
@@ -334,10 +347,12 @@ static void test_poly_compose_6(void **state) {
     
     Poly result, expected_result;
     
-    expected_result = tools.x_coeff[0];
-    result = PolyCompose(&tools.poly_simple, 1, tools.x_coeff);
+    expected_result = tools.poly_coeff_2;
+    result = PolyCompose(&tools.poly_simple, 1, &tools.poly_coeff_2);
     
     assert_true(PolyIsEq(&result, &expected_result));
+    
+    PolyDestroy(&result);
 }
 
 /**
@@ -349,17 +364,22 @@ static void test_poly_compose_7(void **state) {
     Poly result, expected_result;
     
     expected_result = tools.poly_simple;
-    result = PolyCompose(&tools.poly_simple, 1, tools.x_simple);
+    result = PolyCompose(&tools.poly_simple, 1, &tools.poly_simple);
     
     assert_true(PolyIsEq(&result, &expected_result));
+    
+    PolyDestroy(&result);
 }
 
 static void test_compose_command(void **state, char *input,
                                  char *expected_stdout_result,
                                  char *expected_stderr_result) {
+    (void)state;
+    
     init_input_stream(input);
     
-    assert_int_equal(mock_main(), 0);
+    calc_poly_main();
+    //assert_int_equal(calc_poly_main(), 0);
     assert_string_equal(printf_buffer, expected_stdout_result);
     assert_string_equal(fprintf_buffer, expected_stderr_result);
 }
@@ -370,7 +390,7 @@ static void test_compose_command(void **state, char *input,
 static void test_compose_command_1(void **state) {
     (void)state;
     
-    test_compose_command(state, "COMPOSE", "", "ERROR 1 WRONG COUNT\n");
+    test_compose_command(state, "1\n1\nPRINT\n", "", "");
 }
 
 /**
@@ -388,7 +408,9 @@ static void test_compose_command_2(void **state) {
 static void test_compose_command_3(void **state) {
     (void)state;
     
-    test_compose_command(state, "COMPOSE " + UINT_MAX, "",
+//TODO ogarnij dodawanie liczby do string
+    
+    test_compose_command(state,"COMPOSE 4294967295", "",
                          "ERROR 1 STACK UNDERFLOW\n");
 }
 
@@ -408,10 +430,11 @@ static void test_compose_command_4(void **state) {
 static void test_compose_command_5(void **state) {
     (void)state;
     
-    long count = UINT_MAX;
-    count += 1;
+//TODO
+//    long count = UINT_MAX;
+//    count += 1;
     
-    test_compose_command(state, "COMPOSE " + count, "",
+    test_compose_command(state, "COMPOSE 4294967296", "",
                          "ERROR 1 WRONG COUNT\n");
 }
 
@@ -423,10 +446,11 @@ static void test_compose_command_6(void **state) {
     
     /* żeby liczba ta była na pewno większa od maksymalnego unsigned,
      * bierzemy maksymalny unsigned i mnożymy go razy losową liczbę, np 3 */
-    long count = UINT_MAX;
-    count *= 3;
+//TODO
+//    long count = UINT_MAX;
+//    count *= 3;
     
-    test_compose_command(state, "COMPOSE " + count, "",
+    test_compose_command(state, "COMPOSE 54325414236", "",
                          "ERROR 1 WRONG COUNT\n");
 }
 
@@ -448,15 +472,15 @@ static void test_compose_command_8(void **state) {
     test_compose_command(state, "COMPOSE 123XYZ", "", "ERROR 1 WRONG COUNT\n");
 }
 
-int main(void) {
+int main() {
     const struct CMUnitTest group1[] = {
-        cmocka_unit_test(test_poly_compose_1),
-        cmocka_unit_test(test_poly_compose_2),
-        cmocka_unit_test(test_poly_compose_3),
-        cmocka_unit_test(test_poly_compose_4),
-        cmocka_unit_test(test_poly_compose_5),
-        cmocka_unit_test(test_poly_compose_6),
-        cmocka_unit_test(test_poly_compose_7),
+        //cmocka_unit_test(test_poly_compose_1),
+        //cmocka_unit_test(test_poly_compose_2),
+        //cmocka_unit_test(test_poly_compose_3),
+        //cmocka_unit_test(test_poly_compose_4),
+        //cmocka_unit_test(test_poly_compose_5),
+        //cmocka_unit_test(test_poly_compose_6),
+        //cmocka_unit_test(test_poly_compose_7),
     };
     const struct CMUnitTest group2[] = {
         cmocka_unit_test_setup_teardown(test_compose_command_1, test_setup, 
@@ -477,7 +501,7 @@ int main(void) {
                                         test_teardown),
     };
     
-    return cmocka_run_group_tests(group1, test_group_1_setup,
-                                  test_group_1_teardown)
-         + cmocka_run_group_tests(group2, NULL, NULL);
+    return /*cmocka_run_group_tests(group1, test_group_1_setup,
+                                  test_group_1_teardown);
+         + */cmocka_run_group_tests(group2, NULL, NULL);
 }

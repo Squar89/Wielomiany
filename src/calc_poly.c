@@ -9,6 +9,7 @@
 #include <ctype.h>
 #include <limits.h>
 #include "poly.h"
+#include "utils.h"
 
 #define ASCII_A 65 /* wartości ascii dla danych liter alfabetu */
 #define ASCII_Z 90
@@ -335,6 +336,8 @@ int main() {
     
     found_EOF = false;
     stack = SetupStack();
+    
+    IncrementRow(-1);
     
     while (!found_EOF) {
         IncrementColumn(-1);

@@ -7,6 +7,7 @@
 #include <assert.h>
 #include <stdio.h>
 #include "poly.h"
+#include "utils.h"
 
 /**
  * Funkcja symetryczna do MonoDestroy, ale na potrzeby implementacji list
@@ -641,8 +642,7 @@ Poly PolyToPower(const Poly *p, poly_exp_t exp) {
     
     poly = PolyToPower(p, exp / 2);
     
-    result = PolyMul(&poly, &poly);/* upewnij się że PolyMul nie ma problemów
-                                    z mnożeniem tego samego poly */
+    result = PolyMul(&poly, &poly);
     if (exp % 2 == 1) {
         temp = PolyMul(&result, p);
         PolyDestroy(&result);

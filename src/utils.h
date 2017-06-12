@@ -96,8 +96,8 @@ void mock_assert(const int result, const char* expression, const char *file,
 
 /* Przedefiniowuje main, aby umożliwić istnienie funkcji main w
  * unit_tests_poly.c. */
-#define main(...) calc_poly_main(__VA_ARGS__)
-int calc_poly_main(int argc, char *argv[]);
+#define main() calc_poly_main()
+int calc_poly_main();
 
 #endif /* UNIT_TESTING */
 
