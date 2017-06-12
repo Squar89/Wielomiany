@@ -41,13 +41,17 @@ static int exit_status;
 extern int calc_poly_main();
 
 /**
- * Struktura stworzona do ułatwienia kontroli pamięci zawiera Poly 
+ * Struktura stworzona do ułatwienia kontroli pamięci, zawiera Poly 
  * wykorzystywane w testach.
  */
 typedef struct Tools {
-    Poly PolyZero; ///< Wielomian zerowy
-    Poly PolyCoeff;///< Wielomian stały
-}
+    Poly poly_zero; ///< Wielomian zerowy
+    Poly poly_coeff_1; ///< Wielomian stały równy 1
+    Poly poly_simple; ///< Wielomian (3,1)
+    Poly x_coeff[]; ///< Tablica z wielomianem stałym równym 2
+    Poly x_simple[]; ///< Tablica z wielomianem (3,1)
+} Tools;
+static Tools tools;
 
 /**
  * Atrapa funkcji main.
@@ -179,19 +183,38 @@ int mock_fgetc(FILE * const stream) {
 }
 
 /**
- * Funkcja przygotowująca otoczenie przed grupą testów.
+ * Funkcja przygotowująca otoczenie przed pierwszą grupą testów.
  */
-static int test_group_setup(void **state) {
+static int test_group_1_setup(void **state) {
     (void)state;
-    //TODO
+    
+    tools.poly_zero = PolyZero();
+    tools.poly_coeff_1 = PolyFromCoeff(1);
+    
+    Mono *monos = (Mono*) malloc(sizeof(Mono));
+    monos[0] = MonoFromPoly(tools.poly_coeff_1, 1);
+    tools.poly_simple = PolyAddMonos(1, monos);
+    free(monos);
+    
+    tools.x_coeff = (Poly*) malloc(sizeof(Poly));
+    tools.x_coeff[0] = PolyFromCoeff(2);
+    
+    tools.x_simple = (Poly*) malloc(sizeof(Poly));
+    tools.x_simple[0] = tools.poly_simple;
 }
 
 /**
- * Funkcja modyfikująca otoczenie po wykonaniu grupy testów.
+ * Funkcja modyfikująca otoczenie po wykonaniu pierwszej grupy testów.
  */
-static int test_group_teardown(void **state) {
+static int test_group_1_teardown(void **state) {
     (void)state;
-    //TODO
+    
+    PolyDestroy(&tools.poly_zero);
+    PolyDestroy(&tools.poly_coeff_1);
+    PolyDestroy(&tools.poly_simple);
+    PolyDestroy(&tools.x_coeff[0]);
+    free(tools.x_coeff);
+    free(toold.x_simple);
 }
 
 /**
@@ -205,19 +228,18 @@ static void init_input_stream(const char *str) {
     strcpy(input_stream_buffer, str);
 }
 
-static void test_poly_compose(void **state, char *input,Poly expected_result) {
-    (void)state;
-    //W ogóle potrzebne? Chyba nie będę przetwarzał inputa tylko ręcznie 
-    //wszystko robił
-    
-}
 /**
  * p wielomian zerowy, count równe 0.
  */
 static void test_poly_compose_1(void **state) {
     (void)state;
     
+    Poly result, expected_result;
     
+    expected_result = tools.poly_zero;
+    result = PolyCompose(&tools.poly_zero, 0, NULL);
+    
+    assert_true(PolyIsEq(&result, &expected_result));
 }
 
 /**
@@ -225,6 +247,13 @@ static void test_poly_compose_1(void **state) {
  */
 static void test_poly_compose_2(void **state) {
     (void)state;
+    
+    Poly result, expected_result;
+    
+    expected_result = tools.poly_zero;
+    result = PolyCompose(&tools.poly_zero, 1, tools.x_coeff);
+    
+    assert_true(PolyIsEq(&result, &expected_result));
 }
 
 /**
@@ -232,6 +261,13 @@ static void test_poly_compose_2(void **state) {
  */
 static void test_poly_compose_3(void **state) {
     (void)state;
+    
+    Poly result, expected_result;
+    
+    expected_result = tools.poly_coeff_1;
+    result = PolyCompose(&tools.poly_coeff_1, 0, NULL);
+    
+    assert_true(PolyIsEq(&result, &expected_result));
 }
 
 /**
@@ -239,6 +275,13 @@ static void test_poly_compose_3(void **state) {
  */
 static void test_poly_compose_4(void **state) {
     (void)state;
+    
+    Poly result, expected_result;
+    
+    expected_result = tools.poly_coeff_1;
+    result = PolyCompose(&tools.poly_coeff_1, 1, tools.x_coeff);
+    
+    assert_true(PolyIsEq(&result, &expected_result));
 }
 
 /**
@@ -246,6 +289,13 @@ static void test_poly_compose_4(void **state) {
  */
 static void test_poly_compose_5(void **state) {
     (void)state;
+    
+    Poly result, expected_result;
+    
+    expected_result = tools.poly_zero;
+    result = PolyCompose(&tools.poly_simple, 0, NULL);
+    
+    assert_true(PolyIsEq(&result, &expected_result));
 }
 
 /**
@@ -253,6 +303,13 @@ static void test_poly_compose_5(void **state) {
  */
 static void test_poly_compose_6(void **state) {
     (void)state;
+    
+    Poly result, expected_result;
+    
+    expected_result = tools.x_coeff[0];
+    result = PolyCompose(&tools.poly_simple, 1, tools.x_coeff);
+    
+    assert_true(PolyIsEq(&result, &expected_result));
 }
 
 /**
@@ -260,6 +317,13 @@ static void test_poly_compose_6(void **state) {
  */
 static void test_poly_compose_7(void **state) {
     (void)state;
+    
+    Poly result, expected_result;
+    
+    expected_result = tools.poly_simple;
+    result = PolyCompose(&tools.poly_simple, 1, tools.x_simple);
+    
+    assert_true(PolyIsEq(&result, &expected_result));
 }
 
 static void test_compose_command(void **state, char *input,
@@ -334,8 +398,9 @@ int main(void) {
         cmocka_unit_test(test_poly_compose_6),
         cmocka_unit_test(test_poly_compose_7),
     };
+        /* zmień na setup teardown
     const struct CMUnitTest group2[] = {
-        cmocka_unit_test(test_compose_command_1),
+        cmocka_unit_test_setup_teardown(test_compose_command_1),
         cmocka_unit_test(test_compose_command_2),
         cmocka_unit_test(test_compose_command_3),
         cmocka_unit_test(test_compose_command_4),
@@ -344,7 +409,9 @@ int main(void) {
         cmocka_unit_test(test_compose_command_7),
         cmocka_unit_test(test_compose_command_8),
     };
+    */
     
-    return cmocka_run_group_tests(group1, test_group_setup,test_group_teardown)
+    return cmocka_run_group_tests(group1, test_group_1_setup,
+                                  test_group_1_teardown)
          + cmocka_run_group_tests(group2, NULL, NULL);
 }
