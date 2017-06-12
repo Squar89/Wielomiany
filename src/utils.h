@@ -23,14 +23,14 @@
 #ifdef UNIT_TESTING
 
 /* Przekierowuje exit do funkcji umożliwiającej przechwycenie kończącego się
- * programu */
+ * programu. */
 #ifdef exit
 #undef exit
 #endif /* exit */
 #define exit(status) mock_exit(status)
 extern void mock_exit(int status);
 
-/* Przekierowuje printf do funkcji umożliwiającej przetestowanie wyjścia */
+/* Przekierowuje printf do funkcji umożliwiającej przetestowanie wyjścia. */
 #ifdef printf
 #undef printf
 #endif /* printf */
@@ -38,14 +38,14 @@ extern void mock_exit(int status);
 extern int mock_printf(const char *format, ...);
 
 /* Przekierowuje fprintf do funkcji umożliwiającej przetestowania wyjścia
- * błędów */
+ * błędów. */
 #ifdef fprintf
 #undef fprintf
 #endif /* fprintf */
 #define fprintf(...) mock_fprintf(__VA_ARGS__)
 extern int mock_fprintf(FILE * const file, const char *format, ...);
 
-/* Przekierowuje scanf do funkcji umożliwiającej przetestowanie wejścia */
+/* Przekierowuje scanf do funkcji umożliwiającej przetestowanie wejścia. */
 #ifdef scanf
 #undef scanf
 #endif /* scanf */
@@ -54,7 +54,7 @@ extern int mock_fprintf(FILE * const file, const char *format, ...);
 extern int read_char_count;
 extern int mock_scanf(const char *format, ...);
 
-/* Przekierowuje fgetc do funkcji umożliwiającej przetestowanie wejścia */
+/* Przekierowuje fgetc do funkcji umożliwiającej przetestowanie wejścia. */
 #ifdef fgetc
 #undef fgetc
 #endif /* fgetc */
@@ -62,7 +62,7 @@ extern int mock_scanf(const char *format, ...);
 extern int mock_fgetc(FILE * const stream);
 
 /* Przekierowuje calloc, malloc, realloc, free do odpowiadających im funkcji.
- * Umożliwia to przetestowanie błędów z pamięcią */
+ * Umożliwia to przetestowanie błędów z pamięcią. */
 #ifdef calloc
 #undef calloc
 #endif /* calloc */
@@ -85,7 +85,7 @@ void* _test_malloc(size_t size, char* const file, int line);
 void* _test_realloc(void* const ptr, size_t size, char* const file, int line);
 void _test_free(void* const ptr, char* const file, const int line);
 
-/* Przekierowuje assert do mock_assert, żeby móc "przechwycić" asserty */
+/* Przekierowuje assert do mock_assert, żeby móc "przechwycić" asserty. */
 #ifdef assert
 #undef assert
 #endif /* assert */
@@ -95,7 +95,7 @@ void mock_assert(const int result, const char* expression, const char *file,
                  const int line);
 
 /* Przedefiniowuje main, aby umożliwić istnienie funkcji main w
- * unit_tests_poly.c */
+ * unit_tests_poly.c. */
 #define main(...) calc_poly_main(__VA_ARGS__)
 int calc_poly_main(int argc, char *argv[]);
 

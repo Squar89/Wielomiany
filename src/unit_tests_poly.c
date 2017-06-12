@@ -38,21 +38,21 @@
 static jmp_buf jmp_at_exit;
 static int exit_status;
 
-extern int calc_poly_main(int argc, char *argv[]);
+extern int calc_poly_main();
 
 /**
- * Atrapa funkcji main
+ * Atrapa funkcji main.
  */
-int mock_main(int argc, char *argv[]) {
+int mock_main() {
     if (!setjmp(jmp_at_exit)) {
-        return calc_poly_main(argc, argv);
+        return calc_poly_main();
     }
     
     return exit_status;
 }
 
 /**
- * Atrapa funkcji exit
+ * Atrapa funkcji exit.
  */
 void mock_exit(int status) {
     exit_status = status;
@@ -169,3 +169,160 @@ int mock_fgetc(FILE * const stream) {
         return EOF;
 }
 
+/**
+ * Funkcja przygotowująca otoczenie przed grupą testów.
+ */
+static int test_group_setup(void **state) {
+    (void)state;
+    //TODO
+}
+
+/**
+ * Funkcja modyfikująca otoczenie po wykonaniu grupy testów.
+ */
+static int test_group_teardown(void **state) {
+    (void)state;
+    //TODO
+}
+
+/**
+ * Funkcja inicjująca dane wejściowe dla programu korzystającego ze stdin.
+ */
+static void init_input_stream(const char *str) {
+    memset(input_stream_buffer, 0, sizeof(input_stream_buffer));
+    input_stream_position = 0;
+    input_stream_end = strlen(str);
+    assert_true((size_t)input_stream_end < sizeof(input_stream_buffer));
+    strcpy(input_stream_buffer, str);
+}
+
+/**
+ * p wielomian zerowy, count równe 0.
+ */
+static void test_poly_compose_1(void **state) {
+    (void)state;
+}
+
+/**
+ * p wielomian zerowy, count równe 1, x[0] wielomian stały.
+ */
+static void test_poly_compose_2(void **state) {
+    (void)state;
+}
+
+/**
+ * p wielomian stały, count równe 0.
+ */
+static void test_poly_compose_3(void **state) {
+    (void)state;
+}
+
+/**
+ * p wielomian stały, count równe 1, x[0] wielomian stały różny od p.
+ */
+static void test_poly_compose_4(void **state) {
+    (void)state;
+}
+
+/**
+ * p wielomian x0, count równe 0.
+ */
+static void test_poly_compose_5(void **state) {
+    (void)state;
+}
+
+/**
+ * p wielomian x0, count równe 1, x[0] wielomian stały.
+ */
+static void test_poly_compose_6(void **state) {
+    (void)state;
+}
+
+/**
+ * p wielomian x0, count równe 1, x[0] wielomian x0.
+ */
+static void test_poly_compose_7(void **state) {
+    (void)state;
+}
+
+/**
+ * brak parametru count.
+ */
+static void test_compose_command_1(void **state) {
+    (void)state;
+}
+
+/**
+ * minimalna wartość count = 0.
+ */
+static void test_compose_command_2(void **state) {
+    (void)state;
+}
+
+/**
+ * count = maksymalna wartość reprezentowana w typie unsigned.
+ */
+static void test_compose_command_3(void **state) {
+    (void)state;
+}
+
+/**
+ * wartość o jeden mniejsza od minimalnej, czyli count = −1.
+ */
+static void test_compose_command_4(void **state) {
+    (void)state;
+}
+
+/**
+ * count = wartość o jeden większa od maksymalnej reprezentowanej w typie 
+ * unsigned.
+ */
+static void test_compose_command_5(void **state) {
+    (void)state;
+}
+
+/**
+ * count = duża dodatnia wartość, znacznie przekraczająca zakres typu unsigned.
+ */
+static void test_compose_command_6(void **state) {
+    (void)state;
+}
+
+/**
+ * count = kombinacja liter.
+ */
+static void test_compose_command_7(void **state) {
+    (void)state;
+}
+
+/**
+ * count = kombinacja cyfr i liter, rozpoczynająca się cyfrą.
+ */
+static void test_compose_command_8(void **state) {
+    (void)state;
+}
+
+int main(void) {
+    const struct CMUnitTest group1[] = {
+        cmocka_unit_test(test_poly_compose_1),
+        cmocka_unit_test(test_poly_compose_2),
+        cmocka_unit_test(test_poly_compose_3),
+        cmocka_unit_test(test_poly_compose_4),
+        cmocka_unit_test(test_poly_compose_5),
+        cmocka_unit_test(test_poly_compose_6),
+        cmocka_unit_test(test_poly_compose_7),
+    };
+    const struct CMUnitTest group2[] = {
+        cmocka_unit_test(test_compose_command_1),
+        cmocka_unit_test(test_compose_command_2),
+        cmocka_unit_test(test_compose_command_3),
+        cmocka_unit_test(test_compose_command_4),
+        cmocka_unit_test(test_compose_command_5),
+        cmocka_unit_test(test_compose_command_6),
+        cmocka_unit_test(test_compose_command_7),
+        cmocka_unit_test(test_compose_command_8),
+    };
+    
+    return cmocka_run_group_tests(group1, test_group_setup,test_group_teardown)
+         + cmocka_run_group_tests(group2, NULL, NULL);
+}
