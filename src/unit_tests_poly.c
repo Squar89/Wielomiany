@@ -27,7 +27,7 @@
  * ponieważ to będzie maksymalna długość tylko i wyłącznie testów, które sam
  * stworzę i jeśli wszystko będzie działać tak jak należy, to zmieści się w 
  * tym limicie. */
-#define MAX_INPUT_LENGTH 256 
+#define MAX_INPUT_LENGTH 256
 
 /*
  * TODO napisz setup i teardown dla testow
@@ -218,6 +218,34 @@ static int test_group_1_teardown(void **state) {
 }
 
 /**
+ * Funkcja wołana przed każdym testem grupy nr 2.
+ */
+static int test_setup(void **state) {
+    (void)state;
+
+    memset(fprintf_buffer, 0, sizeof(fprintf_buffer));
+    memset(printf_buffer, 0, sizeof(printf_buffer));
+    printf_position = 0;
+    fprintf_position = 0;
+
+    /* Zwrócenie zera oznacza sukces. */
+    return 0;
+}
+
+/**
+ * Funkcja wołana po każdym teście grupy nr 2.
+ */
+static int test_teardown(void **state) {
+    (void)state;
+
+    assert_string_equal(printf_buffer, "");
+    assert_string_equal(fprintf_buffer, "");
+
+    /* Zwrócenie zera oznacza sukces. */
+    return 0;
+}
+
+/**
  * Funkcja inicjująca dane wejściowe dla programu korzystającego ze stdin.
  */
 static void init_input_stream(const char *str) {
@@ -327,8 +355,13 @@ static void test_poly_compose_7(void **state) {
 }
 
 static void test_compose_command(void **state, char *input,
-                                 Poly expected_result) {
+                                 char *expected_stdout_result,
+                                 char *expected_stderr_result) {
+    init_input_stream(input);
     
+    assert_int_equal(mock_main(), 0);
+    assert_string_equal(printf_buffer, expected_stdout_result);
+    assert_string_equal(fprintf_buffer, expected_stderr_result);
 }
 
 /**
@@ -336,6 +369,8 @@ static void test_compose_command(void **state, char *input,
  */
 static void test_compose_command_1(void **state) {
     (void)state;
+    
+    test_compose_command(state, "COMPOSE", "", "ERROR 1 WRONG COUNT\n");
 }
 
 /**
@@ -343,6 +378,8 @@ static void test_compose_command_1(void **state) {
  */
 static void test_compose_command_2(void **state) {
     (void)state;
+    
+    test_compose_command(state, "COMPOSE 0", "", "");
 }
 
 /**
@@ -350,6 +387,9 @@ static void test_compose_command_2(void **state) {
  */
 static void test_compose_command_3(void **state) {
     (void)state;
+    
+    test_compose_command(state, "COMPOSE " + UINT_MAX, "",
+                         "ERROR 1 STACK UNDERFLOW\n");
 }
 
 /**
@@ -357,6 +397,8 @@ static void test_compose_command_3(void **state) {
  */
 static void test_compose_command_4(void **state) {
     (void)state;
+    
+    test_compose_command(state, "COMPOSE -1", "", "ERROR 1 WRONG COUNT\n");
 }
 
 /**
@@ -365,6 +407,12 @@ static void test_compose_command_4(void **state) {
  */
 static void test_compose_command_5(void **state) {
     (void)state;
+    
+    long count = UINT_MAX;
+    count += 1;
+    
+    test_compose_command(state, "COMPOSE " + count, "",
+                         "ERROR 1 WRONG COUNT\n");
 }
 
 /**
@@ -372,6 +420,14 @@ static void test_compose_command_5(void **state) {
  */
 static void test_compose_command_6(void **state) {
     (void)state;
+    
+    /* żeby liczba ta była na pewno większa od maksymalnego unsigned,
+     * bierzemy maksymalny unsigned i mnożymy go razy losową liczbę, np 3 */
+    long count = UINT_MAX;
+    count *= 3;
+    
+    test_compose_command(state, "COMPOSE " + count, "",
+                         "ERROR 1 WRONG COUNT\n");
 }
 
 /**
@@ -379,6 +435,8 @@ static void test_compose_command_6(void **state) {
  */
 static void test_compose_command_7(void **state) {
     (void)state;
+    
+    test_compose_command(state, "COMPOSE XYZ", "", "ERROR 1 WRONG COUNT\n");
 }
 
 /**
@@ -386,6 +444,8 @@ static void test_compose_command_7(void **state) {
  */
 static void test_compose_command_8(void **state) {
     (void)state;
+    
+    test_compose_command(state, "COMPOSE 123XYZ", "", "ERROR 1 WRONG COUNT\n");
 }
 
 int main(void) {
@@ -398,18 +458,24 @@ int main(void) {
         cmocka_unit_test(test_poly_compose_6),
         cmocka_unit_test(test_poly_compose_7),
     };
-        /* zmień na setup teardown
     const struct CMUnitTest group2[] = {
-        cmocka_unit_test_setup_teardown(test_compose_command_1),
-        cmocka_unit_test(test_compose_command_2),
-        cmocka_unit_test(test_compose_command_3),
-        cmocka_unit_test(test_compose_command_4),
-        cmocka_unit_test(test_compose_command_5),
-        cmocka_unit_test(test_compose_command_6),
-        cmocka_unit_test(test_compose_command_7),
-        cmocka_unit_test(test_compose_command_8),
+        cmocka_unit_test_setup_teardown(test_compose_command_1, test_setup, 
+                                        test_teardown),
+        cmocka_unit_test_setup_teardown(test_compose_command_2, test_setup, 
+                                        test_teardown),
+        cmocka_unit_test_setup_teardown(test_compose_command_3, test_setup, 
+                                        test_teardown),
+        cmocka_unit_test_setup_teardown(test_compose_command_4, test_setup, 
+                                        test_teardown),
+        cmocka_unit_test_setup_teardown(test_compose_command_5, test_setup, 
+                                        test_teardown),
+        cmocka_unit_test_setup_teardown(test_compose_command_6, test_setup, 
+                                        test_teardown),
+        cmocka_unit_test_setup_teardown(test_compose_command_7, test_setup, 
+                                        test_teardown),
+        cmocka_unit_test_setup_teardown(test_compose_command_8, test_setup, 
+                                        test_teardown),
     };
-    */
     
     return cmocka_run_group_tests(group1, test_group_1_setup,
                                   test_group_1_teardown)
