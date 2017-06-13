@@ -3,7 +3,7 @@
  * Copyright 2015 Tomasz Kociumaka
  * Copyright 2016, 2017 IPP team
  * Copyright 2017 Jakub Wróblewski
- * 
+ *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
  * You may obtain a copy of the License at
@@ -21,14 +21,10 @@
 #include <string.h>
 #include <setjmp.h>
 #include <limits.h>
-#include "cmocka.h"
 #include "poly.h"
+#include "cmocka.h"
 
-/* Ustalam maksymalną długość wejścia na 256. Mogę założyć maksymalną długość,
- * ponieważ to będzie maksymalna długość tylko i wyłącznie testów, które sam
- * stworzę i jeśli wszystko będzie działać tak jak należy, to zmieści się w 
- * tym limicie. */
-#define MAX_INPUT_LENGTH 256
+#define array_length(x) (sizeof(x) / sizeof((x)[0]))
 
 static jmp_buf jmp_at_exit;
 static int exit_status;
@@ -48,37 +44,29 @@ typedef struct Tools {
 static Tools tools;
 
 /**
- * Atrapa funkcji main.
+ * Atrapa funkcji main
  */
 int mock_main() {
-    if (!setjmp(jmp_at_exit)) {
-        return calc_poly_main();
-    }
-    
-    return exit_status;
+    return calc_poly_main();
 }
 
 /**
- * Atrapa funkcji exit.
+ * Atrapa funkcji exit
  */
 void mock_exit(int status) {
     exit_status = status;
     longjmp(jmp_at_exit, 1);
 }
 
-/*
-//TODO potrzebne?
-int mock_fprintf(FILE* const file, const char *format, ...)
-    CMOCKA_PRINTF_ATTRIBUTE(2, 3);
+int mock_fprintf(FILE* const file, const char *format, ...) CMOCKA_PRINTF_ATTRIBUTE(2, 3);
 int mock_printf(const char *format, ...) CMOCKA_PRINTF_ATTRIBUTE(1, 2);
-*/
 
 /**
  * Pomocnicze bufory, do których piszą atrapy funkcji printf i fprintf oraz
  * pozycje zapisu w tych buforach. Pozycja zapisu wskazuje bajt o wartości 0.
  */
-static char fprintf_buffer[MAX_INPUT_LENGTH];
-static char printf_buffer[MAX_INPUT_LENGTH];
+static char fprintf_buffer[256];
+static char printf_buffer[256];
 static int fprintf_position = 0;
 static int printf_position = 0;
 
@@ -103,7 +91,6 @@ int mock_fprintf(FILE* const file, const char *format, ...) {
 
     fprintf_position += return_value;
     assert_true((size_t)fprintf_position < sizeof(fprintf_buffer));
-    
     return return_value;
 }
 
@@ -127,14 +114,13 @@ int mock_printf(const char *format, ...) {
 
     printf_position += return_value;
     assert_true((size_t)printf_position < sizeof(printf_buffer));
-    
     return return_value;
 }
 
 /**
- * Pomocniczy bufor, z którego korzystają atrapy funkcji operujących na stdin.
+ *  Pomocniczy bufor, z którego korzystają atrapy funkcji operujących na stdin.
  */
-static char input_stream_buffer[MAX_INPUT_LENGTH];
+static char input_stream_buffer[256];
 static int input_stream_position = 0;
 static int input_stream_end = 0;
 int read_char_count;
@@ -147,8 +133,7 @@ int mock_scanf(const char *format, ...) {
     int ret;
 
     va_start(fmt_args, format);
-    ret = vsscanf
-        (input_stream_buffer + input_stream_position, format, fmt_args);
+    ret = vsscanf(input_stream_buffer + input_stream_position, format, fmt_args);
     va_end(fmt_args);
 
     if (ret < 0) { /* ret == EOF */
@@ -161,7 +146,6 @@ int mock_scanf(const char *format, ...) {
             input_stream_position = input_stream_end;
         }
     }
-    
     return ret;
 }
 
@@ -188,6 +172,28 @@ int mock_fgetc(FILE * const stream) {
         return EOF;
 }
 
+/**
+ * Atrapa funkcji ungetc.
+ * Obsługiwane jest tylko standardowe wejście.
+ */
+int mock_ungetc(int c, FILE *stream) {
+    assert_true(stream == stdin);
+    if (input_stream_position > 0)
+        return input_stream_buffer[--input_stream_position] = c;
+    else
+        return EOF;
+}
+
+/**
+ * Funkcja inicjująca dane wejściowe dla programu korzystającego ze stdin.
+ */
+static void init_input_stream(const char *str) {
+    memset(input_stream_buffer, 0, sizeof(input_stream_buffer));
+    input_stream_position = 0;
+    input_stream_end = strlen(str);
+    assert_true((size_t)input_stream_end < sizeof(input_stream_buffer));
+    strcpy(input_stream_buffer, str);
+}
 /**
  * Funkcja przygotowująca otoczenie przed pierwszą grupą testów.
  */
@@ -233,30 +239,6 @@ static int test_setup(void **state) {
 
     /* Zwrócenie zera oznacza sukces. */
     return 0;
-}
-
-/**
- * Funkcja wołana po każdym teście grupy nr 2.
- */
-static int test_teardown(void **state) {
-    (void)state;
-
-    assert_string_equal(printf_buffer, "");
-    assert_string_equal(fprintf_buffer, "");
-
-    /* Zwrócenie zera oznacza sukces. */
-    return 0;
-}
-
-/**
- * Funkcja inicjująca dane wejściowe dla programu korzystającego ze stdin.
- */
-static void init_input_stream(const char *str) {
-    memset(input_stream_buffer, 0, sizeof(input_stream_buffer));
-    input_stream_position = 0;
-    input_stream_end = strlen(str);
-    assert_true((size_t)input_stream_end < sizeof(input_stream_buffer));
-    strcpy(input_stream_buffer, str);
 }
 
 /**
@@ -371,15 +353,13 @@ static void test_poly_compose_7(void **state) {
     PolyDestroy(&result);
 }
 
-static void test_compose_command(void **state, char *input,
+static void test_compose_command(char *input,
                                  char *expected_stdout_result,
                                  char *expected_stderr_result) {
-    (void)state;
-    
     init_input_stream(input);
     
     calc_poly_main();
-    //assert_int_equal(calc_poly_main(), 0);
+    assert_int_equal(calc_poly_main(), 0);
     assert_string_equal(printf_buffer, expected_stdout_result);
     assert_string_equal(fprintf_buffer, expected_stderr_result);
 }
@@ -390,7 +370,7 @@ static void test_compose_command(void **state, char *input,
 static void test_compose_command_1(void **state) {
     (void)state;
     
-    test_compose_command(state, "1\n1\nPRINT\n", "", "");
+    test_compose_command("COMPOSE\n", "", "ERROR 1 WRONG COUNT\n");
 }
 
 /**
@@ -399,7 +379,9 @@ static void test_compose_command_1(void **state) {
 static void test_compose_command_2(void **state) {
     (void)state;
     
-    test_compose_command(state, "COMPOSE 0", "", "");
+    /* stos wielomianów jest pusty, dlatego nie ma nawet jednego wielomianu
+     * dla któregów moglibyśmy wywołać zerowe PolyCompose */
+    test_compose_command("COMPOSE 0\n", "", "ERROR 1 STACK UNDERFLOW\n");
 }
 
 /**
@@ -410,7 +392,7 @@ static void test_compose_command_3(void **state) {
     
 //TODO ogarnij dodawanie liczby do string
     
-    test_compose_command(state,"COMPOSE 4294967295", "",
+    test_compose_command("COMPOSE 4294967295\n", "",
                          "ERROR 1 STACK UNDERFLOW\n");
 }
 
@@ -420,7 +402,7 @@ static void test_compose_command_3(void **state) {
 static void test_compose_command_4(void **state) {
     (void)state;
     
-    test_compose_command(state, "COMPOSE -1", "", "ERROR 1 WRONG COUNT\n");
+    test_compose_command("COMPOSE -1\n", "", "ERROR 1 WRONG COUNT\n");
 }
 
 /**
@@ -434,7 +416,7 @@ static void test_compose_command_5(void **state) {
 //    long count = UINT_MAX;
 //    count += 1;
     
-    test_compose_command(state, "COMPOSE 4294967296", "",
+    test_compose_command("COMPOSE 4294967296\n", "",
                          "ERROR 1 WRONG COUNT\n");
 }
 
@@ -450,7 +432,7 @@ static void test_compose_command_6(void **state) {
 //    long count = UINT_MAX;
 //    count *= 3;
     
-    test_compose_command(state, "COMPOSE 54325414236", "",
+    test_compose_command("COMPOSE 54325414236\n", "",
                          "ERROR 1 WRONG COUNT\n");
 }
 
@@ -460,7 +442,7 @@ static void test_compose_command_6(void **state) {
 static void test_compose_command_7(void **state) {
     (void)state;
     
-    test_compose_command(state, "COMPOSE XYZ", "", "ERROR 1 WRONG COUNT\n");
+    test_compose_command("COMPOSE XYZ\n", "", "ERROR 1 WRONG COUNT\n");
 }
 
 /**
@@ -469,39 +451,31 @@ static void test_compose_command_7(void **state) {
 static void test_compose_command_8(void **state) {
     (void)state;
     
-    test_compose_command(state, "COMPOSE 123XYZ", "", "ERROR 1 WRONG COUNT\n");
+    test_compose_command("COMPOSE 123XYZ\n", "", "ERROR 1 WRONG COUNT\n");
 }
 
 int main() {
     const struct CMUnitTest group1[] = {
-        //cmocka_unit_test(test_poly_compose_1),
-        //cmocka_unit_test(test_poly_compose_2),
-        //cmocka_unit_test(test_poly_compose_3),
-        //cmocka_unit_test(test_poly_compose_4),
-        //cmocka_unit_test(test_poly_compose_5),
-        //cmocka_unit_test(test_poly_compose_6),
-        //cmocka_unit_test(test_poly_compose_7),
+        cmocka_unit_test(test_poly_compose_1),
+        cmocka_unit_test(test_poly_compose_2),
+        cmocka_unit_test(test_poly_compose_3),
+        cmocka_unit_test(test_poly_compose_4),
+        cmocka_unit_test(test_poly_compose_5),
+        cmocka_unit_test(test_poly_compose_6),
+        cmocka_unit_test(test_poly_compose_7),
     };
     const struct CMUnitTest group2[] = {
-        cmocka_unit_test_setup_teardown(test_compose_command_1, test_setup, 
-                                        test_teardown),
-        cmocka_unit_test_setup_teardown(test_compose_command_2, test_setup, 
-                                        test_teardown),
-        cmocka_unit_test_setup_teardown(test_compose_command_3, test_setup, 
-                                        test_teardown),
-        cmocka_unit_test_setup_teardown(test_compose_command_4, test_setup, 
-                                        test_teardown),
-        cmocka_unit_test_setup_teardown(test_compose_command_5, test_setup, 
-                                        test_teardown),
-        cmocka_unit_test_setup_teardown(test_compose_command_6, test_setup, 
-                                        test_teardown),
-        cmocka_unit_test_setup_teardown(test_compose_command_7, test_setup, 
-                                        test_teardown),
-        cmocka_unit_test_setup_teardown(test_compose_command_8, test_setup, 
-                                        test_teardown),
+        cmocka_unit_test_setup(test_compose_command_1, test_setup),
+        cmocka_unit_test_setup(test_compose_command_2, test_setup),
+        cmocka_unit_test_setup(test_compose_command_3, test_setup),
+        cmocka_unit_test_setup(test_compose_command_4, test_setup),
+        cmocka_unit_test_setup(test_compose_command_5, test_setup),
+        cmocka_unit_test_setup(test_compose_command_6, test_setup),
+        cmocka_unit_test_setup(test_compose_command_7, test_setup),
+        cmocka_unit_test_setup(test_compose_command_8, test_setup),
     };
     
-    return /*cmocka_run_group_tests(group1, test_group_1_setup,
+    return cmocka_run_group_tests(group1, test_group_1_setup,
                                   test_group_1_teardown);
-         + */cmocka_run_group_tests(group2, NULL, NULL);
+         + cmocka_run_group_tests(group2, NULL, NULL);
 }
