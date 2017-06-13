@@ -219,6 +219,9 @@ void PolyToString(Poly *p);
  */
 void MonoToString(Mono *m);
 
+/*  TODO USUN */
+Poly PolyToPower(const Poly *p, poly_exp_t exp);
+
 /**
  * W danym wielomianie p pod zmienną x_i tego wielomianu podstawia wielomian
  * z danej tablicy będący pod indeksem i (x[i]). Zmienne oraz tablicę

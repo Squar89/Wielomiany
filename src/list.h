@@ -106,4 +106,8 @@ extern List* CloneList(void* (*Clone)(void*), List *list_in);
  */
 extern bool IsEmpty(List *list);
 
+extern void FreeListElement(List *list);
+
+extern void FreeList(List *list);
+
 #endif /* LIST_H */

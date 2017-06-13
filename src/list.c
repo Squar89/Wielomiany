@@ -6,8 +6,8 @@
 */
 #include <stdlib.h>
 #include <stdio.h>
-#include "list.h"
 #include "utils.h"
+#include "list.h"
 
 bool CheckIfNullPointer(List *list) {
     if (list->previous == NULL || list->next == NULL) {
@@ -81,6 +81,24 @@ void DeleteList(void (*Delete)(void*), List *list) {
         DeleteList(Delete, GetNext(list));
     }
     DeleteListElement(Delete, list);
+    
+    return;
+}
+
+void FreeListElement(List *list) {
+    if (GetElement(list) != NULL) {
+        free(GetElement(list));
+    }
+    free(list);
+    
+    return;
+}
+
+void FreeList(List *list) {
+    if (GetElement(GetNext(list)) != NULL) {
+        FreeList(GetNext(list));
+    }
+    FreeListElement(list);
     
     return;
 }

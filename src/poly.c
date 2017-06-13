@@ -286,6 +286,8 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
         mono_to_add = MallocMono(MonoFromPoly(&poly_from_monos, monos_exp));
         
         AddMono(result.mono_list, mono_to_add, false);
+        
+// /*TODO USUN*/printf(mono_to_add->is_allocated ? "true\n" : "false\n");
     }
 
     CheckPoly(&result);
@@ -342,7 +344,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
         }
         result = PolyAddMonos(monos_count, monos);
         
-        DeleteList(&free, queue);
+        FreeList(queue);
         free(monos);
     }
     
@@ -399,7 +401,7 @@ Poly PolyMul(const Poly *p, const Poly *q) {
         }
         result = PolyAddMonos(monos_count, monos);
         
-        DeleteList(&free, queue);
+        FreeList(queue);
         free(monos);
     }
     
@@ -639,10 +641,12 @@ Poly PolyToPower(const Poly *p, poly_exp_t exp) {
     if (exp == 0) {
         return PolyFromCoeff(1);
     }
-    
     poly = PolyToPower(p, exp / 2);
     
     result = PolyMul(&poly, &poly);
+    
+//    PolyToString(&result);//TODO USUN
+    
     if (exp % 2 == 1) {
         temp = PolyMul(&result, p);
         PolyDestroy(&result);
@@ -687,7 +691,7 @@ Poly PolyCompose(const Poly *p, unsigned count, const Poly x[]) {
             result = temp;
         }
         else if (count != 0) {
-            composed_poly = PolyCompose(&current_mono->p, count - 1, x + 1);
+            composed_poly = PolyCompose(&(current_mono->p), count - 1, x + 1);
 
             exp_poly = PolyToPower(&(x[0]), current_mono->exp);
             

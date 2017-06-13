@@ -22,6 +22,7 @@
 #include <setjmp.h>
 #include <limits.h>
 #include "poly.h"
+#include "list.h"
 #include "cmocka.h"
 
 #define array_length(x) (sizeof(x) / sizeof((x)[0]))
@@ -203,11 +204,26 @@ static int test_group_1_setup(void **state) {
     tools.poly_zero = PolyZero();
     tools.poly_coeff_1 = PolyFromCoeff(1);
     tools.poly_coeff_2 = PolyFromCoeff(2);
+    /*
+    Mono *mono;
     
+    tools.poly_simple = PolyFromCoeff(0);
+    mono = (Mono*) malloc(sizeof(Mono));
+    *mono = MonoFromPoly(&temp, 1);
+    mono->is_allocated = true;
+    AddElement(tools.poly_simple.mono_list, (void*) mono);
+    */
+    Poly temp;
     Mono monos[1];
-    Poly temp = PolyFromCoeff(1);
+    
+    temp = PolyFromCoeff(1);
     monos[0] = MonoFromPoly(&temp, 1);
     tools.poly_simple = PolyAddMonos(1, monos);
+    
+    /*
+    PolyToString(&tools.poly_simple);
+    assert_string_equal(printf_buffer, "COKOLWIEK");
+    */
     
     return 0;
 }
@@ -350,6 +366,8 @@ static void test_poly_compose_7(void **state) {
     
     assert_true(PolyIsEq(&result, &expected_result));
     
+//    assert_string_equal(printf_buffer, "COKOLWIEK");//TODO
+    
     PolyDestroy(&result);
 }
 
@@ -358,7 +376,6 @@ static void test_compose_command(char *input,
                                  char *expected_stderr_result) {
     init_input_stream(input);
     
-    calc_poly_main();
     assert_int_equal(calc_poly_main(), 0);
     assert_string_equal(printf_buffer, expected_stdout_result);
     assert_string_equal(fprintf_buffer, expected_stderr_result);
@@ -455,14 +472,14 @@ static void test_compose_command_8(void **state) {
 }
 
 int main() {
-    const struct CMUnitTest group1[] = {
+    const struct CMUnitTest group1[] = {/*
         cmocka_unit_test(test_poly_compose_1),
         cmocka_unit_test(test_poly_compose_2),
         cmocka_unit_test(test_poly_compose_3),
         cmocka_unit_test(test_poly_compose_4),
         cmocka_unit_test(test_poly_compose_5),
         cmocka_unit_test(test_poly_compose_6),
-        cmocka_unit_test(test_poly_compose_7),
+        cmocka_unit_test(test_poly_compose_7),*/
     };
     const struct CMUnitTest group2[] = {
         cmocka_unit_test_setup(test_compose_command_1, test_setup),
