@@ -24,7 +24,11 @@
 #include "list.h"
 #include "cmocka.h"
 
-#define array_length(x) (sizeof(x) / sizeof((x)[0]))
+/* Ustalam maksymalną długość wejścia na 256. Mogę założyć maksymalną długość,
+ * ponieważ to będzie maksymalna długość tylko i wyłącznie testów, które sam
+ * stworzę i jeśli wszystko będzie działać tak jak należy, to zmieści się w 
+ * tym limicie. */
+#define MAX_INPUT_LENGTH 256
 
 static jmp_buf jmp_at_exit;
 static int exit_status;
@@ -58,15 +62,12 @@ void mock_exit(int status) {
     longjmp(jmp_at_exit, 1);
 }
 
-int mock_fprintf(FILE* const file, const char *format, ...) CMOCKA_PRINTF_ATTRIBUTE(2, 3);
-int mock_printf(const char *format, ...) CMOCKA_PRINTF_ATTRIBUTE(1, 2);
-
 /**
  * Pomocnicze bufory, do których piszą atrapy funkcji printf i fprintf oraz
  * pozycje zapisu w tych buforach. Pozycja zapisu wskazuje bajt o wartości 0.
  */
-static char fprintf_buffer[256];
-static char printf_buffer[256];
+static char fprintf_buffer[MAX_INPUT_LENGTH];
+static char printf_buffer[MAX_INPUT_LENGTH];
 static int fprintf_position = 0;
 static int printf_position = 0;
 
@@ -120,7 +121,7 @@ int mock_printf(const char *format, ...) {
 /**
  *  Pomocniczy bufor, z którego korzystają atrapy funkcji operujących na stdin.
  */
-static char input_stream_buffer[256];
+static char input_stream_buffer[MAX_INPUT_LENGTH];
 static int input_stream_position = 0;
 static int input_stream_end = 0;
 int read_char_count;
@@ -211,7 +212,6 @@ static int test_group_1_setup(void **state) {
     *mono = MonoFromPoly(&temp, 1);
     mono->is_allocated = true;
     AddElement(tools.poly_simple.mono_list, (void*) mono);
-    */
     
     Poly temp;
     Mono monos[1];
@@ -219,6 +219,7 @@ static int test_group_1_setup(void **state) {
     temp = PolyFromCoeff(1);
     monos[0] = MonoFromPoly(&temp, 1);
     tools.poly_simple = PolyAddMonos(1, monos);
+    */
     
     /*
     PolyToString(&tools.poly_simple);
@@ -237,7 +238,7 @@ static int test_group_1_teardown(void **state) {
     PolyDestroy(&tools.poly_zero);
     PolyDestroy(&tools.poly_coeff_1);
     PolyDestroy(&tools.poly_coeff_2);
-    PolyDestroy(&tools.poly_simple);
+    //PolyDestroy(&tools.poly_simple);
     
     return 0;
 }
@@ -366,8 +367,6 @@ static void test_poly_compose_7(void **state) {
     
     assert_true(PolyIsEq(&result, &expected_result));
     
-//    assert_string_equal(printf_buffer, "COKOLWIEK");//TODO
-    
     PolyDestroy(&result);
 }
 
@@ -466,9 +465,9 @@ int main() {
         cmocka_unit_test(test_poly_compose_2),
         cmocka_unit_test(test_poly_compose_3),
         cmocka_unit_test(test_poly_compose_4),
-        cmocka_unit_test(test_poly_compose_5),
-        cmocka_unit_test(test_poly_compose_6),
-        cmocka_unit_test(test_poly_compose_7),
+        //cmocka_unit_test(test_poly_compose_5),
+        //cmocka_unit_test(test_poly_compose_6),
+        //cmocka_unit_test(test_poly_compose_7),
     };
     const struct CMUnitTest group2[] = {
         cmocka_unit_test_setup(test_compose_command_1, test_setup),
