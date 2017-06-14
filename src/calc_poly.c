@@ -336,7 +336,6 @@ int main() {
     
     found_EOF = false;
     stack = SetupStack();
-    
     IncrementRow(-1);
     
     while (!found_EOF) {

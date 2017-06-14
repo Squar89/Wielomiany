@@ -100,14 +100,7 @@ void PolyDestroy(Poly *p);
  * Usuwa jednomian z pamięci.
  * @param[in] m : jednomian
  */
-static inline void MonoDestroy(Mono *m) {
-    PolyDestroy(&(m->p));
-    if(m->is_allocated) {
-        free(m);
-    }
-    
-    return;
-}
+void MonoDestroy(Mono *m);
 
 /**
  * Robi pełną, głęboką kopię wielomianu.
@@ -219,7 +212,12 @@ void PolyToString(Poly *p);
  */
 void MonoToString(Mono *m);
 
-/*  TODO USUN */
+/**
+ * Podnosi podany wielomian do danej potęgi.
+ * @param[in] p : wielomian który chcemy potęgować
+ * @param[in] exp : potęga do której chcemy podnieść wielomian
+ * @return wielomian = (p)^exp
+ */
 Poly PolyToPower(const Poly *p, poly_exp_t exp);
 
 /**

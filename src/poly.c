@@ -20,6 +20,15 @@ static void MonoDestroyVoid(void *element) {
     return;
 }
 
+void MonoDestroy(Mono *m) {
+    PolyDestroy(&(m->p));
+    if(m->is_allocated) {
+        free(m);
+    }
+    
+    return;
+}
+
 void PolyDestroy(Poly *p) {
     DeleteList(&MonoDestroyVoid, p->mono_list);
     
@@ -624,15 +633,10 @@ void MonoToString(Mono *m) {
     printf("(");
     PolyToString(&(m->p));
     printf(",%d)", m->exp);
+    
     return;
 }
 
-/**
- * Podnosi podany wielomian do danej potęgi.
- * @param[in] p : wielomian który chcemy potęgować
- * @param[in] exp : potęga do której chcemy podnieść wielomian
- * @return wielomian = (p)^exp
- */
 Poly PolyToPower(const Poly *p, poly_exp_t exp) {
     Poly result, poly, temp;
     
@@ -642,8 +646,6 @@ Poly PolyToPower(const Poly *p, poly_exp_t exp) {
     poly = PolyToPower(p, exp / 2);
     
     result = PolyMul(&poly, &poly);
-    
-//    PolyToString(&result);//TODO USUN
     
     if (exp % 2 == 1) {
         temp = PolyMul(&result, p);

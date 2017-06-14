@@ -1,3 +1,9 @@
+/** @file
+   Interfejs przedefiniowujący niektóre funkcje na potrzeby testów
+   jednostkowych.
+
+   @date 2017-06-14
+*/
 /*
  * Copyright 2008 Google Inc.
  * Copyright 2015 Tomasz Kociumaka

@@ -92,6 +92,20 @@ extern void DeleteListElement(void (*Delete)(void*), List *list);
 extern void DeleteList(void (*Delete)(void*), List *list);
 
 /**
+ * Usuwa element listy wykorzystując funkcję free().
+ * Równoważne DeleteListElement(free, list)
+ * @param[in] list : lista
+ */
+extern void FreeListElement(List *list);
+
+/**
+ * Usuwa całą podaną listę wykorzystując funkcję free().
+ * Równoważne DeleteList(free, list)
+ * @param[in] list : lista do usunięca
+ */
+extern void FreeList(List *list);
+
+/**
  * Klonuje listę wykorzystując podaną funkcję.
  * @param[in] Clone : funkcja przy pomocy której zostaną skopiowane elementy
  * @param[in] list_in : lista do skopiowania
@@ -105,9 +119,5 @@ extern List* CloneList(void* (*Clone)(void*), List *list_in);
  * @return czy lista jest pusta?
  */
 extern bool IsEmpty(List *list);
-
-extern void FreeListElement(List *list);
-
-extern void FreeList(List *list);
 
 #endif /* LIST_H */

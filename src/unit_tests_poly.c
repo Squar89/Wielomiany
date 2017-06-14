@@ -1,3 +1,8 @@
+/** @file
+   Implementacja testów jednostkowych kalkulatora wielomianów.
+
+   @date 2017-06-14
+*/
 /*
  * Copyright 2008 Google Inc.
  * Copyright 2015 Tomasz Kociumaka
@@ -24,10 +29,10 @@
 #include "list.h"
 #include "cmocka.h"
 
-/* Ustalam maksymalną długość wejścia na 256. Mogę założyć maksymalną długość,
- * ponieważ to będzie maksymalna długość tylko i wyłącznie testów, które sam
- * stworzę i jeśli wszystko będzie działać tak jak należy, to zmieści się w 
- * tym limicie. */
+/** Ustalam maksymalną długość wejścia na 256. Mogę założyć maksymalną długość,
+ * ponieważ to będzie maksymalna długość tylko i wyłącznie testów. Jeśli 
+ * wszystko będzie działać tak jak należy, to zmieści się w tym limicie.
+ */
 #define MAX_INPUT_LENGTH 256
 
 static jmp_buf jmp_at_exit;
@@ -134,7 +139,8 @@ int mock_scanf(const char *format, ...) {
     int ret;
 
     va_start(fmt_args, format);
-    ret = vsscanf(input_stream_buffer + input_stream_position, format, fmt_args);
+    ret = vsscanf(input_stream_buffer + input_stream_position, format, 
+                  fmt_args);
     va_end(fmt_args);
 
     if (ret < 0) { /* ret == EOF */
@@ -201,30 +207,16 @@ static void init_input_stream(const char *str) {
 static int test_group_1_setup(void **state) {
     (void)state;
     
+    Poly temp;
+    Mono monos[1];
+    
     tools.poly_zero = PolyZero();
     tools.poly_coeff_1 = PolyFromCoeff(1);
     tools.poly_coeff_2 = PolyFromCoeff(2);
-    /*
-    Mono *mono;
-    
-    tools.poly_simple = PolyFromCoeff(0);
-    mono = (Mono*) malloc(sizeof(Mono));
-    *mono = MonoFromPoly(&temp, 1);
-    mono->is_allocated = true;
-    AddElement(tools.poly_simple.mono_list, (void*) mono);
-    
-    */
-    Poly temp;
-    Mono monos[1];
     
     temp = PolyFromCoeff(1);
     monos[0] = MonoFromPoly(&temp, 1);
     tools.poly_simple = PolyAddMonos(1, monos);
-    
-    /*
-    PolyToString(&tools.poly_simple);
-    assert_string_equal(printf_buffer, "COKOLWIEK");
-    */
     
     return 0;
 }
@@ -259,7 +251,7 @@ static int test_setup(void **state) {
 }
 
 /**
- * p wielomian zerowy, count równe 0.
+ * Test PolyCompose: p wielomian zerowy, count równe 0.
  */
 static void test_poly_compose_1(void **state) {
     (void)state;
@@ -275,7 +267,7 @@ static void test_poly_compose_1(void **state) {
 }
 
 /**
- * p wielomian zerowy, count równe 1, x[0] wielomian stały.
+ * Test PolyCompose: p wielomian zerowy, count równe 1, x[0] wielomian stały.
  */
 static void test_poly_compose_2(void **state) {
     (void)state;
@@ -291,7 +283,7 @@ static void test_poly_compose_2(void **state) {
 }
 
 /**
- * p wielomian stały, count równe 0.
+ * Test PolyCompose: p wielomian stały, count równe 0.
  */
 static void test_poly_compose_3(void **state) {
     (void)state;
@@ -307,7 +299,8 @@ static void test_poly_compose_3(void **state) {
 }
 
 /**
- * p wielomian stały, count równe 1, x[0] wielomian stały różny od p.
+ * Test PolyCompose: p wielomian stały, count równe 1, x[0] wielomian
+ * stały różny od p.
  */
 static void test_poly_compose_4(void **state) {
     (void)state;
@@ -323,7 +316,7 @@ static void test_poly_compose_4(void **state) {
 }
 
 /**
- * p wielomian x0, count równe 0.
+ * Test PolyCompose: p wielomian x0, count równe 0.
  */
 static void test_poly_compose_5(void **state) {
     (void)state;
@@ -339,7 +332,7 @@ static void test_poly_compose_5(void **state) {
 }
 
 /**
- * p wielomian x0, count równe 1, x[0] wielomian stały.
+ * Test PolyCompose: p wielomian x0, count równe 1, x[0] wielomian stały.
  */
 static void test_poly_compose_6(void **state) {
     (void)state;
@@ -355,7 +348,7 @@ static void test_poly_compose_6(void **state) {
 }
 
 /**
- * p wielomian x0, count równe 1, x[0] wielomian x0.
+ * Test PolyCompose: p wielomian x0, count równe 1, x[0] wielomian x0.
  */
 static void test_poly_compose_7(void **state) {
     (void)state;
@@ -370,6 +363,9 @@ static void test_poly_compose_7(void **state) {
     PolyDestroy(&result);
 }
 
+/**
+ * Funkcja pomocnicza do testów ComposeCommand.
+ */
 static void test_compose_command(char *input, char *expected_stdout_result,
                                  char *expected_stderr_result) {
     init_input_stream(input);
@@ -380,7 +376,7 @@ static void test_compose_command(char *input, char *expected_stdout_result,
 }
 
 /**
- * brak parametru count.
+ * Test ComposeCommand: brak parametru count.
  */
 static void test_compose_command_1(void **state) {
     (void)state;
@@ -389,7 +385,7 @@ static void test_compose_command_1(void **state) {
 }
 
 /**
- * minimalna wartość count = 0.
+ * Test ComposeCommand: minimalna wartość count = 0.
  */
 static void test_compose_command_2(void **state) {
     (void)state;
@@ -398,7 +394,8 @@ static void test_compose_command_2(void **state) {
 }
 
 /**
- * count = maksymalna wartość reprezentowana w typie unsigned.
+ * Test ComposeCommand: count = maksymalna wartość reprezentowana w typie
+ * unsigned.
  */
 static void test_compose_command_3(void **state) {
     (void)state;
@@ -409,7 +406,8 @@ static void test_compose_command_3(void **state) {
 }
 
 /**
- * wartość o jeden mniejsza od minimalnej, czyli count = −1.
+ * Test ComposeCommand: wartość o jeden mniejsza od minimalnej, czyli
+ * count = −1.
  */
 static void test_compose_command_4(void **state) {
     (void)state;
@@ -418,30 +416,29 @@ static void test_compose_command_4(void **state) {
 }
 
 /**
- * count = wartość o jeden większa od maksymalnej reprezentowanej w typie 
- * unsigned.
+ * Test ComposeCommand: count = wartość o jeden większa od maksymalnej
+ * reprezentowanej w typie unsigned.
  */
 static void test_compose_command_5(void **state) {
     (void)state;
     
     /* 4294967296 = UINT_MAX + 1 */
-    test_compose_command("COMPOSE 4294967296\n", "",
-                         "ERROR 1 WRONG COUNT\n");
+    test_compose_command("COMPOSE 4294967296\n", "", "ERROR 1 WRONG COUNT\n");
 }
 
 /**
- * count = duża dodatnia wartość, znacznie przekraczająca zakres typu unsigned.
+ * Test ComposeCommand: count = duża dodatnia wartość, znacznie przekraczająca
+ * zakres typu unsigned.
  */
 static void test_compose_command_6(void **state) {
     (void)state;
     
     /* 54325414236 > UINT_MAX */
-    test_compose_command("COMPOSE 54325414236\n", "",
-                         "ERROR 1 WRONG COUNT\n");
+    test_compose_command("COMPOSE 54325414236\n", "", "ERROR 1 WRONG COUNT\n");
 }
 
 /**
- * count = kombinacja liter.
+ * Test ComposeCommand: count = kombinacja liter.
  */
 static void test_compose_command_7(void **state) {
     (void)state;
@@ -450,7 +447,8 @@ static void test_compose_command_7(void **state) {
 }
 
 /**
- * count = kombinacja cyfr i liter, rozpoczynająca się cyfrą.
+ * Test ComposeCommand: count = kombinacja cyfr i liter, rozpoczynająca się
+ * cyfrą.
  */
 static void test_compose_command_8(void **state) {
     (void)state;
@@ -464,9 +462,9 @@ int main() {
         cmocka_unit_test(test_poly_compose_2),
         cmocka_unit_test(test_poly_compose_3),
         cmocka_unit_test(test_poly_compose_4),
-        //cmocka_unit_test(test_poly_compose_5),
-        //cmocka_unit_test(test_poly_compose_6),
-        //cmocka_unit_test(test_poly_compose_7),
+        cmocka_unit_test(test_poly_compose_5),
+        cmocka_unit_test(test_poly_compose_6),
+        cmocka_unit_test(test_poly_compose_7),
     };
     const struct CMUnitTest group2[] = {
         cmocka_unit_test_setup(test_compose_command_1, test_setup),
