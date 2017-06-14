@@ -20,7 +20,6 @@
 #include <stdarg.h>
 #include <string.h>
 #include <setjmp.h>
-#include <limits.h>
 #include "poly.h"
 #include "list.h"
 #include "cmocka.h"
@@ -213,6 +212,7 @@ static int test_group_1_setup(void **state) {
     mono->is_allocated = true;
     AddElement(tools.poly_simple.mono_list, (void*) mono);
     */
+    
     Poly temp;
     Mono monos[1];
     
@@ -396,9 +396,7 @@ static void test_compose_command_1(void **state) {
 static void test_compose_command_2(void **state) {
     (void)state;
     
-    /* stos wielomianów jest pusty, dlatego nie ma nawet jednego wielomianu
-     * dla któregów moglibyśmy wywołać zerowe PolyCompose */
-    test_compose_command("COMPOSE 0\n", "", "ERROR 1 STACK UNDERFLOW\n");
+    test_compose_command("1\nCOMPOSE 0\n", "", "");
 }
 
 /**
@@ -407,8 +405,7 @@ static void test_compose_command_2(void **state) {
 static void test_compose_command_3(void **state) {
     (void)state;
     
-//TODO ogarnij dodawanie liczby do string
-    
+    /* 4294967295 = UINT_MAX */
     test_compose_command("COMPOSE 4294967295\n", "",
                          "ERROR 1 STACK UNDERFLOW\n");
 }
@@ -429,10 +426,7 @@ static void test_compose_command_4(void **state) {
 static void test_compose_command_5(void **state) {
     (void)state;
     
-//TODO
-//    long count = UINT_MAX;
-//    count += 1;
-    
+    /* 4294967296 = UINT_MAX + 1 */
     test_compose_command("COMPOSE 4294967296\n", "",
                          "ERROR 1 WRONG COUNT\n");
 }
@@ -443,12 +437,7 @@ static void test_compose_command_5(void **state) {
 static void test_compose_command_6(void **state) {
     (void)state;
     
-    /* żeby liczba ta była na pewno większa od maksymalnego unsigned,
-     * bierzemy maksymalny unsigned i mnożymy go razy losową liczbę, np 3 */
-//TODO
-//    long count = UINT_MAX;
-//    count *= 3;
-    
+    /* 54325414236 > UINT_MAX */
     test_compose_command("COMPOSE 54325414236\n", "",
                          "ERROR 1 WRONG COUNT\n");
 }
@@ -472,14 +461,14 @@ static void test_compose_command_8(void **state) {
 }
 
 int main() {
-    const struct CMUnitTest group1[] = {/*
+    const struct CMUnitTest group1[] = {
         cmocka_unit_test(test_poly_compose_1),
         cmocka_unit_test(test_poly_compose_2),
         cmocka_unit_test(test_poly_compose_3),
         cmocka_unit_test(test_poly_compose_4),
         cmocka_unit_test(test_poly_compose_5),
         cmocka_unit_test(test_poly_compose_6),
-        cmocka_unit_test(test_poly_compose_7),*/
+        cmocka_unit_test(test_poly_compose_7),
     };
     const struct CMUnitTest group2[] = {
         cmocka_unit_test_setup(test_compose_command_1, test_setup),
@@ -493,6 +482,6 @@ int main() {
     };
     
     return cmocka_run_group_tests(group1, test_group_1_setup,
-                                  test_group_1_teardown);
+                                  test_group_1_teardown)
          + cmocka_run_group_tests(group2, NULL, NULL);
 }
