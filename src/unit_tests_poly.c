@@ -213,13 +213,13 @@ static int test_group_1_setup(void **state) {
     mono->is_allocated = true;
     AddElement(tools.poly_simple.mono_list, (void*) mono);
     
+    */
     Poly temp;
     Mono monos[1];
     
     temp = PolyFromCoeff(1);
     monos[0] = MonoFromPoly(&temp, 1);
     tools.poly_simple = PolyAddMonos(1, monos);
-    */
     
     /*
     PolyToString(&tools.poly_simple);
@@ -238,7 +238,7 @@ static int test_group_1_teardown(void **state) {
     PolyDestroy(&tools.poly_zero);
     PolyDestroy(&tools.poly_coeff_1);
     PolyDestroy(&tools.poly_coeff_2);
-    //PolyDestroy(&tools.poly_simple);
+    PolyDestroy(&tools.poly_simple);
     
     return 0;
 }
@@ -370,8 +370,7 @@ static void test_poly_compose_7(void **state) {
     PolyDestroy(&result);
 }
 
-static void test_compose_command(char *input,
-                                 char *expected_stdout_result,
+static void test_compose_command(char *input, char *expected_stdout_result,
                                  char *expected_stderr_result) {
     init_input_stream(input);
     

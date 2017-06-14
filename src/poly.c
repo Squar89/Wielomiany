@@ -286,8 +286,6 @@ Poly PolyAddMonos(unsigned count, const Mono monos[]) {
         mono_to_add = MallocMono(MonoFromPoly(&poly_from_monos, monos_exp));
         
         AddMono(result.mono_list, mono_to_add, false);
-        
-// /*TODO USUN*/printf(mono_to_add->is_allocated ? "true\n" : "false\n");
     }
 
     CheckPoly(&result);
