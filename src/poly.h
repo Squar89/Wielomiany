@@ -22,8 +22,8 @@ typedef long poly_coeff_t;
 typedef int poly_exp_t;
 
 /**
- * Struktura przechowująca wielomian
- * Wielomian jest zbudowany z list jednomianów
+ * Struktura przechowująca wielomian.
+ * Wielomian jest zbudowany z list jednomianów.
  * Jeśli wielomian jest stały, to jego wartość jest
  * przechowywana w constant_value
  */
@@ -33,7 +33,7 @@ typedef struct Poly {
 } Poly;
 
 /**
-  * Struktura przechowująca jednomian
+  * Struktura przechowująca jednomian.
   * Jednomian ma postać `p * x^e`.
   * Współczynnik `p` może też być wielomianem.
   * Będzie on traktowany jako wielomian nad kolejną zmienną (nie nad x).
